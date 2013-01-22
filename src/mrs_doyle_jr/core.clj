@@ -200,13 +200,10 @@ SetPrefs: %s" from-addr text @tea-countdown @drinkers @informed @setting-prefs))
 
 (defn make-connection
   []
-  (jabber/make-connection
+  (let [conn (jabber/make-connection
               (get-connection-info)
-              (var handle-message)))
-  ;(let [conn (jabber/make-connection
-  ;            (get-connection-info)
-  ;            (var handle-message))]
-  ;  (presence/add-presence-listener conn presence-listener)))
+              (var handle-message))]
+    (presence/add-presence-listener conn presence-listener)))
 
 (defn -main
   []
