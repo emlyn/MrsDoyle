@@ -1,4 +1,4 @@
-﻿What does Mrs Doyle do?
+What does Mrs Doyle do?
 -------------------------
 
 Mrs Doyle is a tool to solve a problem which has plagued offices for centuries, 'Whose turn is it to make the tea?'
@@ -11,11 +11,9 @@ Once she has surveyed everybody in the office about their imminent desire to imb
 Setting Up:
 -----------
 
-Mrs Doyle uses the Google App Engine (www.appspot.com) and works best within hosted google services. It's fairly simple and written in Python. You can simply modify and add a range of different responses for different situations by editing conversation.py
+TODO: deploying.
 
-To get started, you should download the google app engine SDK and register an appspot.com account. If you then download the code upload it using the google sdk tools (how to do this depends on whether you are using linux or windows, the documentation is available online but basically involves pointing a tool at the app folder and typing in your email address/password). *Firstly however* you will need to edit app.yaml to reflect the app name you registered on _your_ google appspot account. 
-
-Once she has been successfully deployed, go to your google talk client (or the chat window in your gmail) and add <youruploadedappname>@appspot.com to your contacts (I'm afraid the app name mrsdoyle is already taken). 
+Once she has been successfully deployed, go to your google talk client (or the chat window in your gmail) and add <yourdeployedloginname> to your contacts.
 
 You should now be able to talk to her, and if you mention tea, she will ask everyone who is online whether they want tea. They then have 120 seconds to answer yes or no, after which Mrs Doyle will select somebody at random who has to make the tea (weighted for fairness towards people who have drunk more than they've made). They will receive a list of all the people they have to brew for.
 
@@ -30,7 +28,7 @@ Usage tips:
 * Once you have said yes, there is no backing out.
 * If you are busy and do not wish to be disturbed, simply say so and she will leave you alone until you next talk to her (she may set a sulky status until you do!)
 * If you want to invite new people to take part, you can simply tell Mrs Doyle about them and she will go invite them to chat and introduce herself!
-* Once you have had a few cups of tea, go to <yourappname>.appspot.com/stats to see some interesting statistics about how many cups of tea have been drunk as well as who's been luckiest in terms of cups made vs drunk!
+* TODO: accessing stats.
 
 Finally
 --------------
