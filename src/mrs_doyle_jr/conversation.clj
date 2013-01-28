@@ -9,7 +9,7 @@
 
 (def trigger-add-person #"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b")
 
-(def trigger-tea-prefs #"(?i)earl gr[ae]y|mint|milk|sugar|white|black|roibos|chai|green tea|ceylon|camomile|herbal tea|herb tea")
+(def trigger-tea-prefs #"(?i)earl gr[ae]y|mint|milk|sugar|honey|lemon|white|black|roibos|chai|green tea|ceylon|camomile|herbal tea|herb tea")
 
 (def trigger-go-away #"(?i)go away|busy|from home|not today")
 

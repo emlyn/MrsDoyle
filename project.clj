@@ -9,4 +9,7 @@
                  [overtone/at-at "1.1.1"]
                  [congomongo "0.4.0"]
                  [jivesoftware/smack "3.1.0"]]
+  :profiles {:dev
+             {:dependencies [[midje "1.5-alpha5"]]
+              :plugins      [[lein-midje "3.0-alpha1"]]}}
   :main mrs-doyle-jr.core)

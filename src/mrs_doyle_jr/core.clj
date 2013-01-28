@@ -5,9 +5,11 @@
    [quit-yo-jibber :as jabber]
    [quit-yo-jibber.presence :as presence]
    [overtone.at-at :as at]
-   ;[somnium.congomongo :as mongo]
+   [clojure.string :as s]
+   [somnium.congomongo :as mongo]
    ))
 
+; Fix tea round
 ; TODO: Stats! (congomongo)
 ; TODO: Select maker according to stats
 
@@ -26,38 +28,33 @@
 
 (def at-pool (at/mk-pool))
 
-(defn- re-from-b64
-  [b64string]
+(defn- ^{:testable true} re-from-b64 [b64string]
   (re-pattern (String. (b64/decode (.getBytes b64string)))))
 
-(defn- random-text
-  [options]
+(defn- ^{:testable true} random-text [options]
   (nth options
        (int (rand (count options)))))
 
-(defn- get-person
-  [addr]
+(defn- ^{:testable true} get-person [addr]
   ((swap! roster #(if (contains? % addr)
                    %
                    (assoc %
                      addr
-                     (ref {:jid addr :askme true :newbie true}))))
+                     (ref {:jid addr :askme false :newbie true}))))
     addr))
 
-(defn- get-salutation
-  [jid]
-  (clojure.string/replace
-    (clojure.string/replace
-      (first (clojure.string/split jid #"@"))
+(defn- ^{:testable true} get-salutation [jid]
+  (s/replace
+    (s/replace
+      (first (s/split jid #"@"))
       "."
       " ")
     #"^[a-z]| [a-z]"
     #(.toUpperCase %)))
 
-(defn- how-they-like-it-clause
-  [conn text talker]
+(defn- ^{:testable true} how-they-like-it-clause [conn text talker]
   (let [addr (@talker :jid)
-        clauses (clojure.string/split text #", *" 2)]
+        clauses (s/split text #", *" 2)]
     (when (> (count clauses) 1)
       (when (re-find convo/trigger-tea-prefs (last clauses))
         (dosync (commute talker assoc :teaprefs (last clauses)))))
@@ -66,36 +63,38 @@
       (dosync (commute setting-prefs conj addr))
       (random-text convo/how-to-take-it))))
 
-(defn- select-tea-maker
-  [people]
+(defn- ^{:testable true} select-tea-maker [people]
   (random-text people))
 
-(defn- build-well-volunteered-message
-  [maker drinkers]
-  (str (random-text convo/well-volunteered)
-    (apply str
-      (for [drinker drinkers]
-        (str "\n * " (get-salutation drinker) " (" (:teaprefs (get-person drinker)) ")")))))
+(defn- ^{:testable true} build-well-volunteered-message [maker drinkers]
+  (reduce str
+          (random-text convo/well-volunteered)
+          (map #(str "\n * " (get-salutation %) " (" (:teaprefs @(get-person %)) ")")
+               drinkers)))
 
-(defn- presence-message [person]
+(defn- ^{:testable true} presence-message [person]
   (if (:askme person)
     ""
     (format convo/alone-status (get-salutation (:jid person)))))
 
-(defn- process-tea-round
-  [conn]
-  (println (format "Tea round up! Informed:%s Drinkers:%s Pref:%s"
-                   (clojure.string/join "," @informed)
-                   (clojure.string/join "," @drinkers)
-                   (clojure.string/join "," @setting-prefs)))
-        (cond
+(defn- ^{:testable true} process-tea-round [conn]
+  (println (format "Tea round up!\nInformed:%s\nDrinkers:%s\nPref:%s"
+                   (s/join ", " @informed)
+                   (s/join ", " @drinkers)
+                   (s/join ", " @setting-prefs)))
+  (cond
    (= 1 (count @drinkers)) (jabber/send-message conn (first @drinkers) (random-text convo/on-your-own))
-   (> 1 (count @drinkers)) (let [teamaker (select-tea-maker (filter #(not= % double-jeopardy) @drinkers))]
+   (< 1 (count @drinkers)) (let [teamaker (select-tea-maker (filter (partial not= @double-jeopardy) @drinkers))]
+                             (println (str "Dbl Jeopardy: " @double-jeopardy))
+                             (println (str "Tea maker: " teamaker))
                              (dosync (ref-set double-jeopardy teamaker))
-                             (for [person @drinkers]
-                               (jabber/send-message conn person (if (= teamaker person)
-                                                                  (build-well-volunteered-message teamaker drinkers)
-                                                                  (random-text convo/other-offered))))))
+                             (doseq [person @drinkers]
+                               (jabber/send-message conn
+                                                    person
+                                                    (if (= teamaker person)
+                                                      (build-well-volunteered-message teamaker @drinkers)
+                                                      (str (get-salutation teamaker)
+                                                           (random-text convo/other-offered)))))))
   (dosync
    (ref-set tea-countdown false)
    (ref-set drinkers #{})
@@ -103,10 +102,9 @@
    (ref-set setting-prefs #{})
    (ref-set last-round (at/now))))
 
-(defn- handle-message
-  [conn msg]
+(defn- ^{:testable true} handle-message [conn msg]
   (let [text (:body msg)
-        from-addr (first (clojure.string/split (:from msg) #"/"))
+        from-addr (first (s/split (:from msg) #"/"))
         talker (get-person from-addr)]
     (println (str "Message: " from-addr ": " text))
     (dosync
@@ -126,7 +124,9 @@ Countdown: %s
 Drinkers: %s
 Informed: %s
 SetPrefs: %s
-Roster: %s" @tea-countdown @drinkers @informed @setting-prefs (apply str (map #(str "\n" (% 0) ": " @(% 1)) @roster)))
+Roster: %s"
+                       @tea-countdown @drinkers @informed @setting-prefs
+                       (apply str (map #(str "\n" (% 0) ": " @(% 1)) @roster)))
 
       ; Mrs Doyle takes no crap.
       (re-from-b64 convo/trigger-rude) (random-text convo/rude)
@@ -161,7 +161,7 @@ Roster: %s" @tea-countdown @drinkers @informed @setting-prefs (apply str (map #(
               (do
                 (dosync (commute drinkers conj from-addr))
                 (jabber/send-message conn from-addr (random-text convo/ah-grand))
-                (how-they-like-it-clause text talker))
+                (how-they-like-it-clause conn text talker))
 
            :else (random-text convo/ah-go-on))
 
@@ -174,15 +174,16 @@ Roster: %s" @tea-countdown @drinkers @informed @setting-prefs (apply str (map #(
                                           (dosync
                                            (commute drinkers conj from-addr)
                                            (commute informed conj from-addr))
-                                          (for [addr (jabber/available conn)]
+                                          (doseq [addr (jabber/available conn)]
                                             (let [person (get-person addr)]
+                                              (println (format "Person: %s, ask: %s" addr (:askme @person)))
                                               (when (and (:askme @person)
                                                          (not= from-addr (:jid @person)))
-                                                (jabber/send-message conn addr (random-text convo/want-tea)))))
+                                                (jabber/send-message conn addr (random-text convo/want-tea))
+                                                (dosync (commute informed conj addr)))))
                                           (at/after (* 1000 tea-round-duration) (partial process-tea-round conn) at-pool)
                                           (dosync (ref-set tea-countdown true))
                                           (how-they-like-it-clause conn text talker))
-
 
        (re-find convo/trigger-hello text) (random-text convo/greeting)
 
@@ -192,40 +193,36 @@ Roster: %s" @tea-countdown @drinkers @informed @setting-prefs (apply str (map #(
 
        :else (random-text convo/huh)))))
 
-(defn- presence-listener
-  [presence]
+(defn- ^{:testable true} presence-listener [presence]
   (println (str "Presence: " presence))
   (let [addr (:jid presence)
         person (get-person addr)]
-    (presence/set-availability! connection :available (presence-message @person) addr)
+    (presence/set-availability! @connection :available (presence-message @person) addr)
     (when (and (:online? presence)
                (not (:away? presence)))
       (when (:newbie @person)
-        (jabber/send-message connection addr convo/newbie-greeting)
+        (jabber/send-message @connection addr convo/newbie-greeting)
         (dosync (commute person dissoc :newbie)))
       (when (and @tea-countdown
                  (:askme @person)
                  (not (@informed addr)))
-        (jabber/send-message connection addr (random-text convo/want-tea))
+        (jabber/send-message @connection addr (random-text convo/want-tea))
         (dosync (commute informed conj addr)))
       )))
 
-(defn- get-connection-info
-  []
+(defn- get-connection-info []
   (read-string (slurp "login.txt")))
 
-(defn make-connection
-  []
+(defn make-connection []
   (let [conn (jabber/make-connection
               (get-connection-info)
               (var handle-message))]
     (swap! connection (constantly conn))
     (presence/add-presence-listener conn presence-listener)
-    (for [talker (map #(ref {:jid % :newbie true :askme true}) (jabber/roster conn))]
-      (swap! roster #(assoc % (:jid @talker) talker)))
+    (doseq [addr (jabber/roster conn)]
+      (get-person addr))
     conn))
 
-(defn -main
-  []
+(defn -main []
   (make-connection)
   (read-line))
