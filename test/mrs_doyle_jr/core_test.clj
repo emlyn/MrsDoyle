@@ -1,6 +1,6 @@
 (ns mrs-doyle-jr.core-test
   (:require [mrs-doyle-jr.core :as core :refer :all]
-            [mrs-doyle-jr.conversation :as convo]
+            [mrs-doyle-jr.conversation :as conv]
             [quit-yo-jibber :as jabber]
             [quit-yo-jibber.presence :as presence]
             [overtone.at-at :as at]
@@ -29,15 +29,6 @@
   {:body text :from (or from default-addr)})
 
 (facts "about Mrs Doyle"
-       (fact "decodes base64 regex"
-             (re-from-b64 "XltKdXN0XSp0ZXN0aW5nJA==") => #"^[Just]*testing$"
-             (str (re-from-b64 convo/trigger-rude)) => (contains "coffee"))
-
-       (fact "randomizes text"
-             (let [options ["zero" "one" "two"]]
-               (for [t (range 3)]
-                 (random-text options)) => ["two" "zero" "one"])
-             (provided (rand 3) =streams=> [2.99 0.0 1.5]))
 
        (fact "gets people"
              @(get-person "a") => (contains {:jid "a" :newbie true})
@@ -53,7 +44,8 @@
        (fact "asks how they like it"
              (let [talker (ref {:jid default-addr})]
                ; Doesn't know how they like it, and they don't say => she asks.
-               (how-they-like-it-clause ..conn.. "tea" talker) => (first convo/how-to-take-it)
+               (how-they-like-it-clause ..conn.. "tea" talker) => ..how-to-take-it..
+               (provided (conv/how-to-take-it) => ..how-to-take-it..)
                @setting-prefs => #{default-addr}
 
                ; If they say, she won't ask.
@@ -70,9 +62,10 @@
        (fact "builds well-volunteered message"
              (build-well-volunteered-message "polly" ["foo" "bar" "baz"])
              => (every-checker
-                 (contains (first convo/well-volunteered))
+                 (contains "well-volunteered")
                  (contains "Baz (milk)"))
-             (provided (#'core/get-person anything) => (ref {:teaprefs "milk"})))
+             (provided (#'core/get-person anything) => (ref {:teaprefs "milk"})
+                       (conv/well-volunteered) => "well-volunteered"))
 
        (fact "doesn't like leaving people alone"
              (presence-message {:askme true  :jid ""}) => ""
@@ -83,10 +76,10 @@
              (fact "alone"
                    (dosync (ref-set tea-countdown true)
                            (ref-set drinkers #{default-addr}))
-                   (let [on-your-own (first convo/on-your-own)]
-                     (process-tea-round ..conn..) => anything
-                     (provided
-                      (jabber/send-message ..conn.. default-addr on-your-own) => anything))
+
+                   (process-tea-round ..conn..) => anything
+                   (provided
+                    (jabber/send-message ..conn.. default-addr (conv/on-your-own)) => anything)
                    @tea-countdown => false)
 
              (fact "not alone"
@@ -97,12 +90,14 @@
                    (provided
                     (jabber/send-message ..conn..
                                          default-addr
-                                         (contains (first convo/other-offered)))
+                                         (contains "other-offered"))
                     => anything
                     (jabber/send-message ..conn..
                                          other-addr
-                                         (contains (first convo/well-volunteered)))
-                    => anything)
+                                         (contains "well-volunteered"))
+                    => anything
+                    (conv/other-offered-par anything) => "other-offered"
+                    (conv/well-volunteered) => "well-volunteered")
                    @double-jeopardy => other-addr
                    @tea-countdown => false))
 
@@ -119,53 +114,57 @@
 
        (facts "handles messages"
               (fact "takes no crap"
-                    (handle-message ..conn.. (msg "coffee")) => (first convo/rude)
+                    (handle-message ..conn.. (msg "coffee")) => ..rude..
+                    (provided (conv/rude) => ..rude..)
                     (:askme @(get-person default-addr)) => truthy)
 
               (fact "leaves people alone"
-                    (handle-message ..conn.. (msg "go away")) => (first convo/no-tea-today)
+                    (handle-message ..conn.. (msg "go away")) => ..no-tea-today..
                     (provided (presence/set-availability! ..conn..
                                                           :available
                                                           (as-checker (contains "alone"))
                                                           default-addr)
-                              => anything)
+                              => anything
+                              (conv/no-tea-today) => ..no-tea-today..)
                     (:askme @(get-person default-addr)) => falsey)
 
               (fact "says hello"
-                    (handle-message ..conn.. (msg "hi")) => (first convo/greeting))
+                    (handle-message ..conn.. (msg "hi")) => ..greeting..
+                    (provided (conv/greeting) => ..greeting..))
 
               (fact "adds people"
-                    (handle-message ..conn.. (msg "test@example.org")) => (first convo/add-person)
+                    (handle-message ..conn.. (msg "test@example.org")) => ..add-person..
                     (provided (presence/subscribe-presence ..conn.. "test@example.org")
-                              => anything))
+                              => anything
+                              (conv/add-person) => ..add-person..))
 
               (fact "likes tea"
-                    (let [good-idea (first convo/good-idea)
-                          want-tea (first convo/want-tea)]
-                     (handle-message ..conn.. (msg "tea?")) => (first convo/how-to-take-it)
-                     (provided
-                      (jabber/send-message ..conn.. default-addr good-idea) => anything
-                      (jabber/available ..conn..) => [default-addr other-addr "foo"]
-                      (#'core/get-person default-addr) => (ref {:jid default-addr :askme true})
-                      (#'core/get-person other-addr) => (ref {:jid other-addr :askme true})
-                      (#'core/get-person "foo") => (ref {:jid "foo" :askme false})
-                      (jabber/send-message ..conn.. other-addr want-tea) => anything
-                      (at/after anything anything at-pool) => anything))
+                    (handle-message ..conn.. (msg "tea?")) => ..how-to-take-it..
+                    (provided
+                     (jabber/send-message ..conn.. default-addr (conv/good-idea)) => anything
+                     (jabber/available ..conn..) => [default-addr other-addr "foo"]
+                     (#'core/get-person default-addr) => (ref {:jid default-addr :askme true})
+                     (#'core/get-person other-addr) => (ref {:jid other-addr :askme true})
+                     (#'core/get-person "foo") => (ref {:jid "foo" :askme false})
+                     (jabber/send-message ..conn.. other-addr (conv/want-tea)) => anything
+                     (at/after anything anything at-pool) => anything
+                     (conv/how-to-take-it) => ..how-to-take-it..)
                     @tea-countdown => true
                     @informed => #{default-addr other-addr}
                     @setting-prefs => #{default-addr}
                     @drinkers => #{default-addr}
 
-                    (let [ah-grand (first convo/ah-grand)]
-                      (handle-message ..conn.. (msg "yes" other-addr)) => (first convo/how-to-take-it)
-                      (provided
-                       (jabber/send-message ..conn.. other-addr ah-grand) => anything))
+                    (handle-message ..conn.. (msg "yes" other-addr)) => ..how-to-take-it..
+                    (provided
+                     (jabber/send-message ..conn.. other-addr (conv/ah-grand)) => anything
+                     (conv/how-to-take-it) => ..how-to-take-it..)
                     @tea-countdown => true
                     @informed => #{default-addr other-addr}
                     @setting-prefs => #{default-addr other-addr}
                     @drinkers => #{default-addr other-addr}
 
-                    (handle-message ..conn.. (msg "milk no sugar")) => convo/ok
+                    (handle-message ..conn.. (msg "milk no sugar")) => ..ok..
+                    (provided (conv/ok) => ..ok..)
                     @setting-prefs => #{other-addr}))
 
        (fact "handles presence"
@@ -177,18 +176,17 @@
                      (provided
                       (#'core/get-person default-addr) => person
                       (presence/set-availability! ..conn.. :available "" default-addr) => anything
-                      (jabber/send-message ..conn.. default-addr convo/newbie-greeting) => anything)
+                      (jabber/send-message ..conn.. default-addr (conv/newbie-greeting)) => anything)
                      (:newbie @person) => falsey))
 
              (fact "offers tea"
                    (let [person (ref {:jid default-addr :askme true})
-                         presence {:jid default-addr :online? true :away? false}
-                         want-tea (first convo/want-tea)]
+                         presence {:jid default-addr :online? true :away? false}]
                      (swap! connection (constantly ..conn..))
                      (dosync (ref-set tea-countdown true))
                      (presence-listener presence) => anything
                      (provided
                       (#'core/get-person default-addr) => person
                       (presence/set-availability! ..conn.. :available "" default-addr) => anything
-                      (jabber/send-message ..conn.. default-addr want-tea) => anything)
+                      (jabber/send-message ..conn.. default-addr (conv/want-tea)) => anything)
                      @informed => #{default-addr}))))
