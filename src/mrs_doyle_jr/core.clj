@@ -26,7 +26,7 @@
 
 (def at-pool (at/mk-pool))
 
-(defn- ^{:testable true} get-person [addr]
+(defn get-person [addr]
   ((swap! roster #(if (contains? % addr)
                    %
                    (assoc %
@@ -34,7 +34,7 @@
                      (ref {:jid addr :askme false :newbie true}))))
     addr))
 
-(defn- ^{:testable true} get-salutation [jid]
+(defn get-salutation [jid]
   (s/replace
     (s/replace
       (first (s/split jid #"@"))
@@ -43,7 +43,7 @@
     #"^[a-z]| [a-z]"
     #(.toUpperCase %)))
 
-(defn- ^{:testable true} how-they-like-it-clause [conn text talker]
+(defn how-they-like-it-clause [conn text talker]
   (let [addr (@talker :jid)
         clauses (s/split text #", *" 2)]
     (when (> (count clauses) 1)
@@ -56,18 +56,18 @@
 (defn select-tea-maker [people]
   (rand-nth people))
 
-(defn- ^{:testable true} build-well-volunteered-message [maker drinkers]
+(defn build-well-volunteered-message [maker drinkers]
   (reduce str
           (conv/well-volunteered)
           (map #(str "\n * " (get-salutation %) " (" (:teaprefs @(get-person %)) ")")
                drinkers)))
 
-(defn- ^{:testable true} presence-message [person]
+(defn presence-message [person]
   (if (:askme person)
     ""
     (conv/alone-status-par (get-salutation (:jid person)))))
 
-(defn- ^{:testable true} process-tea-round [conn]
+(defn process-tea-round [conn]
   (println (format "Tea round up!\nInformed:%s\nDrinkers:%s\nPref:%s"
                    (s/join ", " @informed)
                    (s/join ", " @drinkers)
@@ -91,7 +91,7 @@
    (ref-set setting-prefs #{})
    (ref-set last-round (at/now))))
 
-(defn- ^{:testable true} handle-message [conn msg]
+(defn handle-message [conn msg]
   (let [text (:body msg)
         from-addr (first (s/split (:from msg) #"/"))
         talker (get-person from-addr)]
@@ -182,7 +182,7 @@ Roster: %s"
 
        :else (conv/huh)))))
 
-(defn- ^{:testable true} presence-listener [presence]
+(defn presence-listener [presence]
   (println (str "Presence: " presence))
   (let [addr (:jid presence)
         person (get-person addr)]

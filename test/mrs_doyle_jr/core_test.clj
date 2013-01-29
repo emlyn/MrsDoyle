@@ -4,10 +4,7 @@
             [quit-yo-jibber :as jabber]
             [quit-yo-jibber.presence :as presence]
             [overtone.at-at :as at]
-            [midje.sweet :refer :all]
-            [midje.util :refer [expose-testables]]))
-
-(expose-testables mrs-doyle-jr.core)
+            [midje.sweet :refer :all]))
 
 (def default-addr "test@example.org")
 (def other-addr "other@example.org")
