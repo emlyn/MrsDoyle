@@ -10,8 +10,6 @@
    [clojure.pprint :refer [pprint]]
    [somnium.congomongo :as mongo]))
 
-; Ask if they want tea - make sure initiator is not asked
-; in-round - make answer after others, why does she reply 'huh' to hello
 ; TODO: Stats! (congomongo)
 ; TODO: Select maker according to stats
 
@@ -80,41 +78,38 @@ Stack: %s
 (defn subscribe-action [addr]
   #(presence/subscribe-presence % addr))
 
-(defn tea-actions [state maker]
-  (let [drinkers (:drinkers state)
-        prefs (zipmap drinkers
-                      (map (comp :teaprefs (:people state))
-                           drinkers))]
-    (update-in state [:actions] (comp vec concat)
-               (map #(message-action %
-                                     (if (nil? maker)
-                                       (conv/on-your-own)
-                                       (if (= maker %)
-                                         (build-well-volunteered-message maker prefs)
-                                         (conv/other-offered-par (get-salutation maker)))))
-                drinkers))))
+(defn process-actions [state conn]
+  (doseq [action (:actions state)]
+    (action conn))
+  (assoc state :actions []))
+
+(defn tea-round-actions [maker prefs]
+  (map #(message-action % (if (nil? maker)
+                            (conv/on-your-own)
+                            (if (= % maker)
+                              (build-well-volunteered-message maker prefs)
+                              (conv/other-offered-par (get-salutation maker)))))
+       (keys prefs)))
 
 (defn select-tea-maker [dj drinkers]
-  (rand-nth (filter (partial not= dj) drinkers)))
+  (when (> (count drinkers) 1)
+    (rand-nth (filter (partial not= dj) drinkers))))
 
 (defn process-tea-round [state]
-  (let [maker (when (> (count (:drinkers state))
-                       1)
-                (select-tea-maker (:double-jeopardy state)
-                                  (:drinkers state)))]
+  (let [drinkers (:drinkers state)
+        maker (select-tea-maker (:double-jeopardy state) drinkers)
+        prefs (zipmap drinkers
+                      (map #(get-in state [:people % :teaprefs])
+                           drinkers))]
+    (println "Tea's up! " maker prefs)
     (-> state
-        (tea-actions maker)
+        (update-in [:actions] (comp vec concat) (tea-round-actions maker prefs))
         (assoc :double-jeopardy (or maker (:double-jeopardy state)))
         (assoc :tea-countdown false)
         (assoc :drinkers #{})
         (assoc :informed #{})
         (assoc :setting-prefs #{})
         (assoc :last-round (at/now)))))
-
-(defn process-actions [state conn]
-  (doseq [action (:actions state)]
-    (action conn))
-  (assoc state :actions []))
 
 (defn handle-tea-round [conn]
   (send state #(-> %
@@ -129,25 +124,29 @@ Stack: %s
       (jabber/send-message conn addr (conv/want-tea)))
     (update-in state [:informed] union candidates)))
 
-(defn tea-action []
+(defn tea-countdown-action []
   (fn [conn]
     (send state tea-queries conn)
     (at/after (* 1000 tea-round-duration)
               (partial handle-tea-round conn)
               @at-pool)))
 
-(defn how-they-like-it-clause [state from text]
+(defn provided-prefs [state addr text]
   (let [clauses (s/split text #", *" 2)]
+    (when (and (> (count clauses) 1)
+               (re-find conv/trigger-tea-prefs (last clauses)))
+      (assoc-in state [:people addr :teaprefs] (last clauses)))))
+
+(defn ask-for-prefs [state addr]
+  (when (not (get-in state [:people addr :teaprefs]))
     (-> state
-        (#(if (and (> (count clauses) 1)
-                   (re-find conv/trigger-tea-prefs (last clauses)))
-            (assoc-in % [:people from :teaprefs] (last clauses))
-            %))
-        (#(if (not (get-in % [:people from :teaprefs]))
-            (-> %
-                (update-in [:setting-prefs] conj from)
-                (update-in [:actions] conj (message-action from (conv/how-to-take-it))))
-            %)))))
+        (update-in [:setting-prefs] conj addr)
+        (update-in [:actions] conj (message-action addr (conv/how-to-take-it))))))
+
+(defn how-they-like-it-clause [state from text]
+  (or (provided-prefs state from text)
+      (ask-for-prefs state from)
+      state))
 
 (defn presence-message [askme addr]
   (if askme
@@ -228,7 +227,7 @@ Stack: %s
         (update-in [:informed] conj from)
         (update-in [:actions] conj
                    (message-action from (conv/good-idea))
-                   (tea-action))
+                   (tea-countdown-action))
         (how-they-like-it-clause from text))))
 
 (defn message-hello [state from text]
