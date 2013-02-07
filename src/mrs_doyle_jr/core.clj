@@ -5,9 +5,13 @@
    [quit-yo-jibber.presence :as presence]
    [overtone.at-at :as at]
    [clojure.string :as s]
+   [clojure.set :refer [union]]
+   [clojure.stacktrace :refer [print-stack-trace]]
    [clojure.pprint :refer [pprint]]
    [somnium.congomongo :as mongo]))
 
+; Ask if they want tea - make sure initiator is not asked
+; in-round - make answer after others, why does she reply 'huh' to hello
 ; TODO: Stats! (congomongo)
 ; TODO: Select maker according to stats
 
@@ -15,29 +19,27 @@
 (def just-missed-duration 10)
 
 (defn ppstr [o]
-  (let [w (java.io.StringWriter.)]
-    (pprint o w)
-    (.toString w)))
+  (with-out-str (pprint o)))
 
 (defn handle-errors [state exception]
-  (let [stack (with-out-str (.printStackTrace exception))]
-
-    (.println System/err (format "
-##########################################
+  (let [stack (with-out-str (print-stack-trace exception))]
+    (.println System/err (format "{{{{{{{{{{{{{{{{{{{{
 Error: %s
 State: %s
 Stack: %s
-##########################################"
+}}}}}}}}}}}}}}}}}}}}"
                                  exception (ppstr state) stack))))
 
-(def state (agent {:people {}
-                   :informed #{}
-                   :drinkers #{}
-                   :setting-prefs #{}
-                   :tea-countdown false
-                   :double-jeopardy nil
-                   :last-round nil
-                   :actions []}
+(def default-state {:people {}
+                    :informed #{}
+                    :drinkers #{}
+                    :setting-prefs #{}
+                    :tea-countdown false
+                    :double-jeopardy nil
+                    :last-round nil
+                    :actions []})
+
+(def state (agent default-state
                   :error-mode :continue
                   :error-handler handle-errors))
 
@@ -63,6 +65,12 @@ Stack: %s
     #"^[a-z]| [a-z]"
     #(.toUpperCase %)))
 
+(defn build-well-volunteered-message [maker prefs]
+  (reduce str
+          (conv/well-volunteered)
+          (map #(str "\n * " (get-salutation %) " (" (prefs %) ")")
+               (filter (partial not= maker) (keys prefs)))))
+
 (defn message-action [addr text]
   #(jabber/send-message % addr text))
 
@@ -72,90 +80,79 @@ Stack: %s
 (defn subscribe-action [addr]
   #(presence/subscribe-presence % addr))
 
-(defn select-tea-maker [state]
-  (let [double-jeopardy (:double-jeopardy state)
-        drinkers (:drinkers state)
-        people (filter (partial not= double-jeopardy) drinkers)]
-    (rand-nth people)))
+(defn tea-actions [state maker]
+  (let [drinkers (:drinkers state)
+        prefs (zipmap drinkers
+                      (map (comp :teaprefs (:people state))
+                           drinkers))]
+    (update-in state [:actions] (comp vec concat)
+               (map #(message-action %
+                                     (if (nil? maker)
+                                       (conv/on-your-own)
+                                       (if (= maker %)
+                                         (build-well-volunteered-message maker prefs)
+                                         (conv/other-offered-par (get-salutation maker)))))
+                drinkers))))
 
-(defn tea-round-lonely [state conn]
-  (when (= 1 (count (:drinkers state)))
-    (jabber/send-message conn
-                         (first (:drinkers state))
-                         (conv/on-your-own)))
-  state)
+(defn select-tea-maker [dj drinkers]
+  (rand-nth (filter (partial not= dj) drinkers)))
 
-(defn build-well-volunteered-message [maker state]
-  (reduce str
-          (conv/well-volunteered)
-          (map #(str "\n * " (get-salutation %) " (" (get-in state [:people % :teaprefs]) ")")
-               (filter (partial not= maker) (:drinkers state)))))
+(defn process-tea-round [state]
+  (let [maker (when (> (count (:drinkers state))
+                       1)
+                (select-tea-maker (:double-jeopardy state)
+                                  (:drinkers state)))]
+    (-> state
+        (tea-actions maker)
+        (assoc :double-jeopardy (or maker (:double-jeopardy state)))
+        (assoc :tea-countdown false)
+        (assoc :drinkers #{})
+        (assoc :informed #{})
+        (assoc :setting-prefs #{})
+        (assoc :last-round (at/now)))))
 
-(defn tea-round-group [state conn]
-  (if (> (count (:drinkers state))
-         1)
-    (let [teamaker (select-tea-maker state)]
-      (doseq [person (:drinkers state)]
-        (jabber/send-message conn
-                             person
-                             (if (= teamaker person)
-                               (build-well-volunteered-message teamaker state)
-                               (conv/other-offered-par (get-salutation teamaker)))))
-      (assoc state :double-jeopardy teamaker))
-    state))
+(defn process-actions [state conn]
+  (doseq [action (:actions state)]
+    (action conn))
+  (assoc state :actions []))
 
-(defn process-tea-round [conn]
-  (send state
-        #(-> %
-             (tea-round-lonely conn)
-             (tea-round-group  conn)
-             (assoc :tea-countdown false)
-             (assoc :drinkers #{})
-             (assoc :informed #{})
-             (assoc :setting-prefs #{})
-             (assoc :last-round (at/now)))))
+(defn handle-tea-round [conn]
+  (send state #(-> %
+                   (process-tea-round)
+                   (process-actions conn))))
+
+(defn tea-queries [state conn]
+  (let [candidates (filter #(and (get-in state [:people % :askme])
+                                 (not (get-in state [:informed %])))
+                           (jabber/available conn))]
+    (doseq [addr candidates]
+      (jabber/send-message conn addr (conv/want-tea)))
+    (update-in state [:informed] union candidates)))
 
 (defn tea-action []
   (fn [conn]
-    (send state
-          (fn [state]
-            (reduce
-             #(%2 %)
-             state
-             (for [addr (jabber/available conn)]
-               #(if (and
-                     (not (get-in % [:informed addr]))
-                     (get-in % [:person addr :askme]))
-                  (do
-                    (jabber/send-message conn addr (conv/want-tea))
-                    (update-in % [:informed] conj addr))
-                  %)))))
+    (send state tea-queries conn)
     (at/after (* 1000 tea-round-duration)
-              (partial process-tea-round conn)
+              (partial handle-tea-round conn)
               @at-pool)))
 
 (defn how-they-like-it-clause [state from text]
   (let [clauses (s/split text #", *" 2)]
     (-> state
         (#(if (and (> (count clauses) 1)
-                  (re-find conv/trigger-tea-prefs (last clauses)))
-           (assoc-in % [:people from :teaprefs] (last clauses))
-           %))
+                   (re-find conv/trigger-tea-prefs (last clauses)))
+            (assoc-in % [:people from :teaprefs] (last clauses))
+            %))
         (#(if (not (get-in % [:people from :teaprefs]))
-           (-> %
-               (update-in [:setting-prefs] conj from)
-               (update-in [:actions] conj (message-action from (conv/how-to-take-it))))
-           %)))))
+            (-> %
+                (update-in [:setting-prefs] conj from)
+                (update-in [:actions] conj (message-action from (conv/how-to-take-it))))
+            %)))))
 
 (defn presence-message [askme addr]
   (if askme
     ""
     (conv/alone-status-par (get-salutation addr))))
-
-(defn handle-actions [state conn]
-  (doseq [action (:actions state)]
-    (action conn))
-  (assoc state :actions []))
 
 (defn in-round [state addr]
   (if (and (:tea-countdown state)
@@ -171,7 +168,7 @@ Stack: %s
 
 (defn message-dbg [state from text]
   (when (= "dbg" text)
-    (update-in state [:actions] conj (message-action from (str state)))))
+    (update-in state [:actions] conj (message-action from (ppstr state)))))
 
 (defn message-rude [state from text]
   (when (re-find conv/trigger-rude text)
@@ -270,7 +267,8 @@ Stack: %s
           (identity              %1))
         (:from msg)
         (:body msg))
-  (send state handle-actions conn)
+  (await state)
+  (send state process-actions conn)
   nil)
 
 (defn presence-status [state addr]
@@ -295,7 +293,7 @@ Stack: %s
                (not (:away? presence)))
       (send state presence-newbie addr)
       (send state in-round addr))
-    (send state handle-actions @connection)))
+    (send state process-actions @connection)))
 
 (defn- get-connection-info []
   (read-string (slurp "login.txt")))
