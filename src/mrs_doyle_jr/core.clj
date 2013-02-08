@@ -1,6 +1,7 @@
 (ns mrs-doyle-jr.core
   (:require
    [mrs-doyle-jr.conversation :as conv]
+   [mrs-doyle-jr.stats :as stats]
    [quit-yo-jibber :as jabber]
    [quit-yo-jibber.presence :as presence]
    [overtone.at-at :as at]
@@ -41,18 +42,26 @@ Stack: %s
                   :error-mode :continue
                   :error-handler handle-errors))
 
-(def connection (atom nil))
 (def at-pool (atom nil))
+(def connection (atom nil))
 
-(defn new-person [addr]
-  {:jid addr
-   :newbie true
-   :askme true})
+(defn get-person [addr]
+  (try (mongo/insert! :people {:_id addr
+                               :newbie true
+                               :askme true})
+    (catch Exception e ; com.mongo/MongoException$DuplicateKey?
+      (mongo/fetch-one :people :_id addr))))
 
 (defn ensure-person [state addr]
   (if (get-in state [:people addr])
     state
-    (assoc-in state [:people addr] (new-person addr))))
+    (assoc-in state [:people addr] (get-person addr))))
+
+(defn update-person [state addr k v]
+  (assoc-in state [:people addr]
+            (mongo/fetch-and-modify :people {:_id addr}
+                                    {:$set {k v}}
+                                    :return-new? true)))
 
 (defn get-salutation [jid]
   (s/replace
@@ -91,9 +100,17 @@ Stack: %s
                               (conv/other-offered-par (get-salutation maker)))))
        (keys prefs)))
 
+(defn select-by-weight [options weights]
+  (let [cum   (reductions + weights)
+        total (last cum)
+        r     (rand total)]
+    (last (take-while #(< (last %) r) (map vector options cum)))))
+
 (defn select-tea-maker [dj drinkers]
   (when (> (count drinkers) 1)
-    (rand-nth (filter (partial not= dj) drinkers))))
+    (let [stats (map get-user-stats drinkers)
+          weights (map (fn [[n d]] (/ n (max 1 d))) stats)]
+      (select-by-weight drinkers weights))))
 
 (defn process-tea-round [state]
   (let [drinkers (:drinkers state)
@@ -102,6 +119,8 @@ Stack: %s
                       (map #(get-in state [:people % :teaprefs])
                            drinkers))]
     (println "Tea's up! " maker prefs)
+    (when maker
+      (stats/update-stats maker drinkers))
     (-> state
         (update-in [:actions] (comp vec concat) (tea-round-actions maker prefs))
         (assoc :double-jeopardy (or maker (:double-jeopardy state)))
@@ -135,7 +154,7 @@ Stack: %s
   (let [clauses (s/split text #", *" 2)]
     (when (and (> (count clauses) 1)
                (re-find conv/trigger-tea-prefs (last clauses)))
-      (assoc-in state [:people addr :teaprefs] (last clauses)))))
+      (update-person state addr :teaprefs (last clauses)))))
 
 (defn ask-for-prefs [state addr]
   (when (not (get-in state [:people addr :teaprefs]))
@@ -163,7 +182,7 @@ Stack: %s
     state))
 
 (defn set-askme [state addr]
-  (assoc-in state [:people addr :askme] true))
+  (update-person state addr :askme true))
 
 (defn message-dbg [state from text]
   (when (= "dbg" text)
@@ -176,7 +195,7 @@ Stack: %s
 (defn message-go-away [state from text]
   (when (re-find conv/trigger-go-away text)
     (-> state
-        (assoc-in [:people from :askme] false)
+        (update-person from :askme false)
         (update-in [:actions] conj
                    (presence-action from (presence-message false from))
                    (message-action from (conv/no-tea-today))))))
@@ -184,7 +203,7 @@ Stack: %s
 (defn message-setting-prefs [state from text]
   (when (get-in state [:setting-prefs from])
     (-> state
-        (assoc-in  [:people from :teaprefs] text)
+        (update-person from :teaprefs text)
         (update-in [:setting-prefs] disj from)
         (update-in [:actions] conj
                    (message-action from (conv/ok))))))
@@ -195,7 +214,7 @@ Stack: %s
     (cond
      (re-find conv/trigger-tea-prefs text)
      (-> state
-         (assoc-in [:people from :teaprefs] text)
+         (update-person from :teaprefs text)
          (update-in [:actions] conj (message-action from (conv/like-tea-par text))))
 
      (re-find conv/trigger-yes text)
@@ -279,7 +298,7 @@ Stack: %s
 (defn presence-newbie [state addr]
   (if (get-in state [:people addr :newbie])
     (-> state
-        (assoc-in [:people addr :newbie] false)
+        (update-person addr :newbie false)
         (update-in [:actions] conj
                    (message-action addr (conv/newbie-greeting))))
     state))
@@ -300,7 +319,11 @@ Stack: %s
 (defn make-at-pool []
   (swap! at-pool (constantly (at/mk-pool))))
 
-(defn make-connection []
+(defn connect-mongo []
+  (let [conn (mongo/make-connection "mrs-doyle")]
+    (mongo/set-connection! conn)))
+
+(defn connect-jabber []
   (let [conn (jabber/make-connection
               (get-connection-info)
               (var handle-message))]
@@ -312,5 +335,6 @@ Stack: %s
 
 (defn -main []
   (make-at-pool)
-  (make-connection)
+  (connect-mongo)
+  (connect-jabber)
   (read-line))

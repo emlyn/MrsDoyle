@@ -21,7 +21,7 @@
 
 (def trigger-tea-prefs #"(?i)earl gr[ae]y|mint|milk|sugar|honey|lemon|white|black|roibos|chai|green tea|ceylon|camomile|herbal tea|herb tea")
 
-(def trigger-go-away #"(?i)go away|busy|from home|not today")
+(def trigger-go-away #"(?i)go away|busy|from home|not today|shut up")
 
 (def trigger-rude (re-from-b64 "ZnVja3xzaGl0fGJvbGxvY2tzfGJpdGNofGJhc3RhcmR8cGVuaXN8Y29ja3xoZWxsIHxwaXNzfHJldGFyZHxjdW50fGNvZmZlZQ=="))
 
