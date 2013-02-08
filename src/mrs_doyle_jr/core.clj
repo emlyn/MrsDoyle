@@ -11,9 +11,6 @@
    [clojure.pprint :refer [pprint]]
    [somnium.congomongo :as mongo]))
 
-; TODO: Stats! (congomongo)
-; TODO: Select maker according to stats
-
 (def tea-round-duration 30)
 (def just-missed-duration 10)
 
@@ -42,6 +39,7 @@ Stack: %s
                   :error-mode :continue
                   :error-handler handle-errors))
 
+(def config (atom nil))
 (def at-pool (atom nil))
 (def connection (atom nil))
 
@@ -97,7 +95,7 @@ Stack: %s
                             (conv/on-your-own)
                             (if (= % maker)
                               (build-well-volunteered-message maker prefs)
-                              (conv/other-offered-par (get-salutation maker)))))
+                              (conv/other-offered-arg (get-salutation maker)))))
        (keys prefs)))
 
 (defn select-by-weight [options weights]
@@ -179,7 +177,7 @@ Stack: %s
 (defn presence-message [askme addr]
   (if askme
     ""
-    (conv/alone-status-par (get-salutation addr))))
+    (conv/alone-status-arg (get-salutation addr))))
 
 (defn in-round [state addr]
   (if (and (:tea-countdown state)
@@ -224,7 +222,7 @@ Stack: %s
      (re-find conv/trigger-tea-prefs text)
      (-> state
          (update-person from :teaprefs text)
-         (update-in [:actions] conj (message-action from (conv/like-tea-par text))))
+         (update-in [:actions] conj (message-action from (conv/like-tea-arg text))))
 
      (re-find conv/trigger-yes text)
      (update-in state [:actions] conj (message-action from (conv/ok)))
@@ -321,28 +319,28 @@ Stack: %s
       (send state in-round addr))
     (send state process-actions @connection)))
 
-(defn- get-connection-info []
-  (read-string (slurp "login.txt")))
+(defn load-config [fname]
+  (swap! config (constantly (read-string (slurp fname)))))
 
 (defn make-at-pool []
   (swap! at-pool (constantly (at/mk-pool))))
 
-(defn connect-mongo []
-  (let [conn (mongo/make-connection "mrs-doyle")]
+(defn connect-mongo [conf]
+  (let [conn (mongo/make-connection (:db conf) (:args conf))]
     (mongo/set-connection! conn)))
 
-(defn connect-jabber []
-  (let [conn (jabber/make-connection
-              (get-connection-info)
-              (var handle-message))]
+(defn connect-jabber [conf]
+  (let [conn (jabber/make-connection conf (var handle-message))]
     (swap! connection (constantly conn))
     (presence/add-presence-listener conn (var handle-presence))
-    (doseq [addr (jabber/roster conn)]
+    (doseq [addr (jabber/available conn)]
       (send state #(ensure-person % addr)))
     conn))
 
 (defn -main []
+  (load-config "config.dat")
   (make-at-pool)
-  (connect-mongo)
-  (connect-jabber)
-  (read-line))
+  (connect-mongo (:mongo @config))
+  (connect-jabber (:jabber @config))
+  (while (.isConnected @connection)
+    (Thread/sleep 100)))

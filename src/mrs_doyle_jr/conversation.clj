@@ -5,13 +5,13 @@
 (defn one-of [& statements]
   (fn [] (rand-nth statements)))
 
-(defn one-of-par [& statements]
-  (fn [par] (format (rand-nth statements) par)))
+(defn one-of-arg [& statements]
+  (fn [arg] (format (rand-nth statements) arg)))
 
 (defn re-from-b64 [b64string]
   (re-pattern (String. (b64/decode (.getBytes b64string)))))
 
-(def trigger-hello #"(?i)hi|hello|morning|afternoon|evening|hey|sup")
+(def trigger-hello #"(?i)hi|yo|hello|mornin|afternoon|evening|hey|sup|good.*day")
 
 (def trigger-yes #"(?i)yes|yeh|ya|booyah|ok|please|totally|definitely|absolutely|yeah|yup|affirmative|yarr|yah|please|sure|okay|alright|yep|go on|certainly")
 
@@ -28,11 +28,11 @@
 (def newbie-greeting
   (one-of "Well hello dear, my name is Mrs Doyle. If you ever want tea, just ask me and I'll see what I can do! Of course if you're busy and don't want me bugging you, just say so and I'll back off."))
 
-(def alone-status-par
-  (one-of-par ":( Leaving %s alone. So alone..."))
+(def alone-status-arg
+  (one-of-arg ":( Leaving %s alone. So alone..."))
 
-(def like-tea-par
-  (one-of-par "So you like your tea '%s'?"))
+(def like-tea-arg
+  (one-of-arg "So you like your tea '%s'?"))
 
 (def ok
   (one-of "Okay!"))
@@ -130,8 +130,8 @@
           "Polly put the kettle on, kettle on, kettle on. You are Polly in this game."
           "Why not stretch those weary legs and have a wander over to the kitchen. Say, while you're there...."))
 
-(def other-offered-par
-  (one-of-par "%s has been kind enough to make the tea, I'd do it myself only I don't have arms"
+(def other-offered-arg
+  (one-of-arg "%s has been kind enough to make the tea, I'd do it myself only I don't have arms"
               "%s has been kind enough to make the tea"
               "%s has been awarded the honour of providing you with tea"
               "%s is going to make tea for you, isn't that nice?"
