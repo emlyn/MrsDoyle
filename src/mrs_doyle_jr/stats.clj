@@ -21,8 +21,8 @@
     (doseq [drinker drinkers]
       (stat-drinker now drinker (if (= drinker maker) cups 0)))))
 
-(defn get-user-stats [name]
-  (let [r (mongo/fetch-one :people
-                           :where {:_id name}
-                           :only [:made :drunk])]
-    [(:drunk r) (:made r)]))
+(defn get-user-stats [names]
+  (let [r (mongo/fetch :people
+                       :where {:_id {:$in names}}
+                       :only [:drunk :made])]
+    (reduce #(assoc % (:_id %2) [(:drunk %2) (:made %2)]) {} r)))

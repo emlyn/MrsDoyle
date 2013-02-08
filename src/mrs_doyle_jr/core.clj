@@ -104,17 +104,26 @@ Stack: %s
   (let [cum   (reductions + weights)
         total (last cum)
         r     (rand total)]
-    (last (take-while #(< (last %) r) (map vector options cum)))))
+    (first (first (drop-while #(< (last %) r)
+                              (map vector options cum))))))
+
+(defn weight [[drunk made]]
+  (/ drunk (max 1 made)))
 
 (defn select-tea-maker [dj drinkers]
   (when (> (count drinkers) 1)
-    (let [stats (map get-user-stats drinkers)
-          weights (map (fn [[n d]] (/ n (max 1 d))) stats)]
-      (select-by-weight drinkers weights))))
+    (let [stats (stats/get-user-stats drinkers)
+          weights (map #(weight (or (stats %) [0 0])) drinkers)
+          maker (select-by-weight drinkers weights)]
+      (println "Stats:" (map str drinkers stats weights))
+      maker)))
 
 (defn process-tea-round [state]
   (let [drinkers (:drinkers state)
-        maker (select-tea-maker (:double-jeopardy state) drinkers)
+        ; When all drinkers are newbies, the first will always be chosen,
+        ; so shuffle drinkers to make sure it's random.
+        maker (select-tea-maker (:double-jeopardy state)
+                                (shuffle drinkers))
         prefs (zipmap drinkers
                       (map #(get-in state [:people % :teaprefs])
                            drinkers))]
@@ -285,7 +294,6 @@ Stack: %s
           (identity              %1))
         (:from msg)
         (:body msg))
-  (await state)
   (send state process-actions conn)
   nil)
 
