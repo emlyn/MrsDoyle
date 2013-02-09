@@ -2,24 +2,27 @@
   (:require
    [somnium.congomongo :as mongo]))
 
-(defn- stat-drinker [now name cups]
+(defn now []
+  (java.util.Date.))
+
+(defn stat-drinker [when name cups]
   (mongo/update! :people {:_id name}
                          {:$inc {:made cups :drunk 1}})
-  (mongo/insert! :cups {:date now
+  (mongo/insert! :cups {:date when
                         :drinker name
                         :made cups}))
 
-(defn- stat-round [now maker cups]
-  (mongo/insert! :rounds {:date now
+(defn stat-round [when maker cups]
+  (mongo/insert! :rounds {:date when
                           :maker maker
                           :cups cups}))
 
 (defn update-stats [maker drinkers]
-  (let [now (java.util.Date.)
+  (let [when (now)
         cups (count drinkers)]
-    (stat-round now maker cups)
+    (stat-round when maker cups)
     (doseq [drinker drinkers]
-      (stat-drinker now drinker
+      (stat-drinker when drinker
                     (if (= drinker maker)
                       cups
                       0)))))
@@ -27,7 +30,7 @@
 (defn get-user-stats [names]
   (let [r (mongo/fetch :people
                        :where {:_id {:$in names}}
-                       :only [:drunk :made])]
+                       :only [:_id :drunk :made])]
     (reduce #(assoc % (:_id %2)
                     (map %2 [:drunk :made]))
             {} r)))

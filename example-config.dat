@@ -1,0 +1,7 @@
+{:tea-round-duration 180
+ :just-missed-duration 120
+ :jabber {:username "mrs.doyle@example.org"
+          :password "****"}
+ :mongo  {:db "mrs-doyle"
+          :args {:host "127.0.0.1"
+                 :port 27017}}}

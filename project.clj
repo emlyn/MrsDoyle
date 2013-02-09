@@ -10,6 +10,6 @@
                  [congomongo "0.4.0"]
                  [jivesoftware/smack "3.1.0"]]
   :profiles {:dev
-             {:dependencies [[midje "1.5-alpha5"]]
-              :plugins      [[lein-midje "3.0-alpha1"]]}}
+             {:dependencies [[midje "1.5-alpha10"]]
+              :plugins      [[lein-midje "3.0-alpha4"]]}}
   :main mrs-doyle-jr.core)

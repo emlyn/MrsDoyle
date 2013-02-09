@@ -11,9 +11,6 @@
    [clojure.pprint :refer [pprint]]
    [somnium.congomongo :as mongo]))
 
-(def tea-round-duration 30)
-(def just-missed-duration 10)
-
 (defn ppstr [o]
   (with-out-str (pprint o)))
 
@@ -153,7 +150,7 @@ Stack: %s
 (defn tea-countdown-action []
   (fn [conn]
     (send state tea-queries conn)
-    (at/after (* 1000 tea-round-duration)
+    (at/after (* 1000 (:tea-round-duration @config 120))
               (partial handle-tea-round conn)
               @at-pool)))
 
@@ -264,7 +261,7 @@ Stack: %s
   (when (re-find conv/trigger-yes text)
     (update-in state [:actions] conj
                (message-action from (if (< (- (at/now) (or (:last-round state) 0))
-                                           (* 1000 just-missed-duration))
+                                           (* 1000 (:just-missed-duration @config 60)))
                                       (conv/just-missed)
                                       (conv/huh))))))
 

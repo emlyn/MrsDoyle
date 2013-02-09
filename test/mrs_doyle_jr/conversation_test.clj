@@ -13,8 +13,8 @@
                    func (apply one-of options)]
                (func) => (partial contains? (set options))))
 
-       (fact "randomizes with param"
+       (fact "randomizes with arg"
              (let [options ["111 %s 222" "333 %s 444"]
-                   func (apply one-of-par options)
-                   par "000"]
-               (func par) => (partial contains #{"111 000 222" "333 000 444"}))))
+                   func (apply one-of-arg options)
+                   arg "000"]
+               (func arg) => (partial contains #{"111 000 222" "333 000 444"}))))

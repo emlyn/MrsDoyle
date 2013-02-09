@@ -8,7 +8,8 @@
 
 (background
  (before :facts
-         (do (send state (constantly default-state)))))
+         (send state
+               (constantly default-state))))
 
 (def default-addr "test@example.org")
 (def other-addr "other@example.org")
@@ -18,12 +19,12 @@
 
 (facts "about Mrs Doyle"
 
-       (fact "new people"
+       #_(fact "new people"
              (new-person ..addr..) => {:jid ..addr..
                                        :newbie true
                                        :askme true})
 
-       (fact "gets people"
+       #_(fact "gets people"
              (:people (ensure-person default-state ..addr-a..)) => {..addr-a.. ..person-a..}
              (provided (new-person ..addr-a..) => ..person-a..)
 
@@ -62,7 +63,7 @@
                ; If she already knows, she won't ask.
                (how-they-like-it-clause ..conn.. "tea" talker) => nil))
 
-       (fact "selects a maker"
+       #_(fact "selects a maker"
              (let [drinkers ["foo" "bar" "baz"]]
                (select-tea-maker "bar" drinkers) => (partial contains? #{"foo" "baz"})))
 
