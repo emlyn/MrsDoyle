@@ -98,7 +98,7 @@ Stack: %s
            (action conn))
          (catch Exception e
            (log-error state e))))
-  (assoc-in state [:actions] []))
+  (assoc state :actions []))
 
 (defn tea-round-actions [maker prefs]
   (map #(message-action % (if (nil? maker)
@@ -256,14 +256,15 @@ Stack: %s
 
 (defn message-countdown [state person text]
   (when (:tea-countdown state)
-    (if (re-find conv/trigger-yes text)
-      (-> state
-          (update-in [:drinkers] conj (:_id person))
-          (append-actions
-           (message-action (:_id person) (conv/ah-grand)))
-          (how-they-like-it-clause person text))
-      (append-actions state
-                      (message-action (:_id person) (conv/ah-go-on))))))
+    (let [addr (:_id person)]
+      (if (re-find conv/trigger-yes text)
+        (-> state
+            (update-in [:drinkers] conj addr)
+            (append-actions
+             (message-action addr (conv/ah-grand)))
+            (how-they-like-it-clause person text))
+        (append-actions state
+                        (message-action addr (conv/ah-go-on)))))))
 
 (defn message-add-person [state person text]
   (when-let [other (re-find conv/trigger-add-person text)]
