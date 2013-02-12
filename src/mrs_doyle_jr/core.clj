@@ -303,9 +303,6 @@ Stack: %s
                   (message-action (:_id person) (conv/huh))
                   (unrecognised-action (:_id person) text)))
 
-(defn message-null [state person text]
-  state)
-
 (defn handle-message [conn msg]
   (let [text (:body msg)
         addr (:from msg)
@@ -314,19 +311,18 @@ Stack: %s
     (send state append-actions
           (person-action addr :askme true))
     (send state in-round person)
-    (send state #(first (keep (fn [f] (f % person text))
-                              [message-dbg
-                               message-rude
-                               message-go-away
-                               message-setting-prefs
-                               message-drinker
-                               message-countdown
-                               message-add-person
-                               message-tea
-                               message-hello
-                               message-yes
-                               message-huh
-                               message-null]))))
+    (send state #(some (fn [f] (f % person text))
+                       [message-dbg
+                        message-rude
+                        message-go-away
+                        message-setting-prefs
+                        message-drinker
+                        message-countdown
+                        message-add-person
+                        message-tea
+                        message-hello
+                        message-yes
+                        message-huh])))
   (send state process-actions conn)
   nil)
 
