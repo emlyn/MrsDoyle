@@ -32,5 +32,6 @@
                        :where {:_id {:$in names}}
                        :only [:_id :drunk :made])]
     (reduce #(assoc % (:_id %2)
-                    (map %2 [:drunk :made]))
+                    [(or (:drunk %2) 0)
+                     (or (:made %2) 0)])
             {} r)))

@@ -44,8 +44,8 @@ Stack: %s
   (try (mongo/insert! :people {:_id addr
                                :newbie true
                                :askme true})
-    (catch Exception e ; com.mongo/MongoException$DuplicateKey?
-      (mongo/fetch-one :people :_id addr))))
+       (catch com.mongodb.MongoException$DuplicateKey e
+         (mongo/fetch-one :people :_id addr))))
 
 (defn ensure-person [state addr]
   (if (get-in state [:people addr])
@@ -96,11 +96,14 @@ Stack: %s
        (keys prefs)))
 
 (defn select-by-weight [options weights]
-  (let [cum   (reductions + weights)
-        total (last cum)
-        r     (rand total)]
-    (first (first (drop-while #(< (last %) r)
-                              (map vector options cum))))))
+  (let [cweight (reductions + weights)
+        total   (last cweight)
+        r       (rand total)]
+    (if (zero? total)
+      (rand-nth options)
+      (first (keep
+              (map #(when (>= % r) %2)
+                   cweight options))))))
 
 (defn weight [[drunk made]]
   (/ drunk (max 1 made)))
@@ -114,11 +117,9 @@ Stack: %s
       maker)))
 
 (defn process-tea-round [state]
-  (let [drinkers (:drinkers state)
-        ; When all drinkers are newbies, the first will always be chosen,
-        ; so shuffle drinkers to make sure it's random.
+  (let [drinkers (vec (:drinkers state))
         maker (select-tea-maker (:double-jeopardy state)
-                                (shuffle drinkers))
+                                drinkers)
         prefs (zipmap drinkers
                       (map #(get-in state [:people % :teaprefs])
                            drinkers))]
@@ -269,26 +270,27 @@ Stack: %s
   (update-in state [:actions] conj
              (message-action from (conv/huh))))
 
+(defn message-null [state from text]
+  state)
+
 (defn handle-message [conn msg]
   (println "Message: " (:from msg) ":" (:body msg))
+  (send state ensure-person (:from msg))
   (send state in-round (:from msg))
   (send state set-askme (:from msg))
-  (send state
-        #(or
-          (message-dbg           %1 %2 %3)
-          (message-rude          %1 %2 %3)
-          (message-go-away       %1 %2 %3)
-          (message-setting-prefs %1 %2 %3)
-          (message-drinker       %1 %2 %3)
-          (message-countdown     %1 %2 %3)
-          (message-add-person    %1 %2 %3)
-          (message-tea           %1 %2 %3)
-          (message-hello         %1 %2 %3)
-          (message-yes           %1 %2 %3)
-          (message-huh           %1 %2 %3)
-          (identity              %1))
-        (:from msg)
-        (:body msg))
+  (send state #(first (keep (fn [f] (f % (:from msg) (:body msg)))
+                            [message-dbg
+                             message-rude
+                             message-go-away
+                             message-setting-prefs
+                             message-drinker
+                             message-countdown
+                             message-add-person
+                             message-tea
+                             message-hello
+                             message-yes
+                             message-huh
+                             message-null])))
   (send state process-actions conn)
   nil)
 
@@ -309,6 +311,7 @@ Stack: %s
 (defn handle-presence [presence]
   (println "Presence: " presence)
   (let [addr (:jid presence)]
+    (send state ensure-person addr)
     (send state presence-status addr)
     (when (and (:online? presence)
                (not (:away? presence)))
@@ -323,7 +326,7 @@ Stack: %s
   (swap! at-pool (constantly (at/mk-pool))))
 
 (defn connect-mongo [conf]
-  (let [conn (mongo/make-connection (:db conf) (:args conf))]
+  (let [conn (mongo/make-connection "mrs-doyle")]
     (mongo/set-connection! conn)))
 
 (defn connect-jabber [conf]
