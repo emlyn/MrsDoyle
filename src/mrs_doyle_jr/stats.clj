@@ -2,9 +2,6 @@
   (:require
    [somnium.congomongo :as mongo]))
 
-(defn now []
-  (java.util.Date.))
-
 (defn stat-drinker [when name cups]
   (mongo/update! :people {:_id name}
                          {:$inc {:made cups :drunk 1}})
@@ -18,7 +15,7 @@
                           :cups cups}))
 
 (defn update-stats [maker drinkers]
-  (let [when (now)
+  (let [when (java.util.Date.)
         cups (count drinkers)]
     (stat-round when maker cups)
     (doseq [drinker drinkers]
