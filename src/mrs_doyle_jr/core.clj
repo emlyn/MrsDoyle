@@ -44,6 +44,10 @@ Stack: %s
 (def at-pool (atom nil))
 (def connection (atom nil))
 
+(defn send-message [conn to msg]
+  (println (format "Send (%s): %s" to msg))
+  (jabber/send-message conn to msg))
+
 (defn get-person [addr]
   (try (mongo/insert! :people {:_id addr
                                :newbie true
@@ -70,7 +74,7 @@ Stack: %s
   (apply update-in state [:actions] conj actions))
 
 (defn message-action [addr text]
-  #(jabber/send-message % addr text))
+  #(send-message % addr text))
 
 (defn presence-action [addr status]
   #(presence/set-availability! % :available status addr))
@@ -87,10 +91,11 @@ Stack: %s
   (fn [s] (stats/update-stats maker drinkers)))
 
 (defn unrecognised-action [addr text]
-  (fn [s] (mongo/insert! :unrecognised {:date (java.util.Date.)
-                                       :from addr
-                                       :text text})
-    (throw (Exception. "Testing"))))
+  (fn [s]
+    (send-message addr (conv/huh))
+    (mongo/insert! :unrecognised {:date (java.util.Date.)
+                                  :from addr
+                                  :text text})))
 
 (defn process-actions [state conn]
   (doseq [action (:actions state)]
@@ -162,9 +167,8 @@ Stack: %s
                                         :askme true}
                                 :only [:_id])
         ids (map :_id candidates)]
-    (println "DBG" available uninformed ids)
     (doseq [addr ids]
-      (jabber/send-message conn addr (conv/want-tea)))
+      (send-message conn addr (conv/want-tea)))
     (update-in state [:informed] union ids)))
 
 (defn tea-countdown-action []
@@ -219,6 +223,10 @@ Stack: %s
     (append-actions state
                     (message-action (:_id person) (conv/rude)))))
 
+(defn message-question [state person text]
+  (when-let [q (re-find conv/trigger-question text)]
+    #_(respond with some stats)))
+
 (defn message-go-away [state person text]
   (when (re-find conv/trigger-go-away text)
     (let [addr (:_id person)]
@@ -250,21 +258,24 @@ Stack: %s
        (append-actions state
                        (message-action addr (conv/ok)))
 
-       :else
+       (re-find conv/trigger-no text)
        (append-actions state
                        (message-action addr (conv/no-backout)))))))
 
 (defn message-countdown [state person text]
   (when (:tea-countdown state)
     (let [addr (:_id person)]
-      (if (re-find conv/trigger-yes text)
-        (-> state
-            (update-in [:drinkers] conj addr)
-            (append-actions
-             (message-action addr (conv/ah-grand)))
-            (how-they-like-it-clause person text))
-        (append-actions state
-                        (message-action addr (conv/ah-go-on)))))))
+      (cond
+       (re-find conv/trigger-yes text)
+       (-> state
+           (update-in [:drinkers] conj addr)
+           (append-actions
+            (message-action addr (conv/ah-grand)))
+           (how-they-like-it-clause person text))
+
+       (re-find conv/trigger-no text)
+       (append-actions state
+                       (message-action addr (conv/ah-go-on)))))))
 
 (defn message-add-person [state person text]
   (when-let [other (re-find conv/trigger-add-person text)]
@@ -273,7 +284,8 @@ Stack: %s
                     (message-action (:_id person) (conv/add-person)))))
 
 (defn message-tea [state person text]
-  (when (re-find conv/trigger-tea text)
+  (when (and (not (:tea-countdown state))
+             (re-find conv/trigger-tea text))
     (let [addr (:_id person)]
       (-> state
           (assoc :tea-countdown true)
@@ -292,23 +304,21 @@ Stack: %s
 (defn message-yes [state person text]
   (when (re-find conv/trigger-yes text)
     (append-actions state
-                    (message-action (:_id person)
-                                    (if (< (- (at/now)
-                                              (:last-round state))
-                                           (* 1000 (:just-missed-duration @config 60)))
-                                      (conv/just-missed)
-                                      (conv/huh))))))
+                    (if (< (- (at/now)
+                              (:last-round state))
+                           (* 1000 (:just-missed-duration @config 60)))
+                      (message-action (:_id person) (conv/just-missed))
+                      (unrecognised-action (:_id person) text)))))
 
 (defn message-huh [state person text]
   (append-actions state
-                  (message-action (:_id person) (conv/huh))
                   (unrecognised-action (:_id person) text)))
 
 (defn handle-message [conn msg]
   (let [text (:body msg)
         addr (:from msg)
         person (get-person addr)]
-    (println "Message: " addr ":" text)
+    (println (format "Received (%s): %s" addr text))
     (send state append-actions
           (person-action addr :askme true))
     (send state in-round person)
@@ -341,7 +351,11 @@ Stack: %s
     state))
 
 (defn handle-presence [presence]
-  (println "Presence: " presence)
+  (println (format "Presence (%s): %s %s '%s'"
+                   (:jid presence)
+                   (if (:online? presence) "online" "offline")
+                   (if (:away? presence) "away" "available")
+                   (:status presence)))
   (let [addr (:jid presence)
         person (get-person addr)]
     (send state presence-status person)
