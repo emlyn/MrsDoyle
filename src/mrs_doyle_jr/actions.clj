@@ -28,14 +28,16 @@
                         {:$set {key newval}})))
 
 (defn log-stats [maker drinkers]
-  (fn [s] (stats/update-stats maker drinkers)))
+  (let [now (java.util.Date.)]
+    (fn [s] (stats/log-round! now maker drinkers))))
 
 (defn unrecognised-text [addr text]
-  (fn [s]
-    (send-message addr (conv/huh))
-    (mongo/insert! :unrecognised {:date (java.util.Date.)
-                                  :from addr
-                                  :text text})))
+  (let [now (java.util.Date.)]
+    (fn [s]
+      (send-message addr (conv/huh))
+      (mongo/insert! :unrecognised {:date now
+                                    :from addr
+                                    :text text}))))
 
 (defn- tea-queries! [state conn]
   (let [available (jabber/available conn)

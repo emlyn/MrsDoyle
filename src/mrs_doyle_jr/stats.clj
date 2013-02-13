@@ -2,27 +2,27 @@
   (:require
    [somnium.congomongo :as mongo]))
 
-(defn stat-drinker [when name cups]
+(defn- stat-drinker! [round-id when name cups]
   (mongo/update! :people {:_id name}
                          {:$inc {:made cups :drunk 1}})
-  (mongo/insert! :cups {:date when
+  (mongo/insert! :cups {:round-id round-id
+                        :date when
                         :drinker name
                         :made cups}))
 
-(defn stat-round [when maker cups]
+(defn- stat-round! [when maker cups]
   (mongo/insert! :rounds {:date when
                           :maker maker
                           :cups cups}))
 
-(defn update-stats [maker drinkers]
-  (let [when (java.util.Date.)
-        cups (count drinkers)]
-    (stat-round when maker cups)
+(defn log-round! [when maker drinkers]
+  (let [cups (count drinkers)
+        round-id (:_id (stat-round! when maker cups))]
     (doseq [drinker drinkers]
-      (stat-drinker when drinker
-                    (if (= drinker maker)
-                      cups
-                      0)))))
+      (stat-drinker! round-id when drinker
+                     (if (= drinker maker)
+                       cups
+                       0)))))
 
 (defn get-user-stats [names]
   (let [r (mongo/fetch :people
