@@ -27,6 +27,8 @@
 
 (def trigger-rude (re-from-b64 "ZnVja3xzaGl0fGJvbGxvY2tzfGJpdGNofGJhc3RhcmR8cGVuaXN8Y29ja3xoZWxsIHxwaXNzfHJldGFyZHxjdW50fGNvZmZlZQ=="))
 
+(def trigger-away #"(?i)wfh|away|home|disturb")
+
 (def trigger-question #"(?i)(who|what|how).*?$")
 
 (def newbie-greeting

@@ -297,11 +297,13 @@ Stack: %s
   (send state process-actions! conn)
   nil)
 
-(defn presence-status [state person]
-  (append-actions state
-                  (action/send-presence (:_id person)
-                                        (presence-message (:askme person)
-                                                          (:_id person)))))
+(defn presence-status [state status person]
+  (let [available (and (:askme person)
+                       (not (re-find conv/trigger-away status)))]
+    (append-actions state
+                    (action/send-presence (:_id person)
+                                          (presence-message available
+                                                            (:_id person))))))
 
 (defn presence-newbie [state person]
   (if (:newbie person)
@@ -318,7 +320,7 @@ Stack: %s
                    (:status presence)))
   (let [addr (:jid presence)
         person (get-person! addr)]
-    (send state presence-status person)
+    (send state presence-status (:status presence) person)
     (when (and (:online? presence)
                (not (:away? presence)))
       (send state presence-newbie person)
