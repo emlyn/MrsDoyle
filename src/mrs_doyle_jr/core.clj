@@ -313,14 +313,15 @@ Stack: %s
     state))
 
 (defn handle-presence [presence]
-  (println (format "Presence (%s): %s %s '%s'"
-                   (:jid presence)
-                   (if (:online? presence) "online" "offline")
-                   (if (:away? presence) "away" "available")
-                   (:status presence)))
   (let [addr (:jid presence)
-        person (get-person! addr)]
-    (send state presence-status (:status presence) person)
+        person (get-person! addr)
+        status (or (:status presence) "")]
+    (println (format "Presence (%s): %s %s '%s'"
+                     addr
+                     (if (:online? presence) "online" "offline")
+                     (if (:away? presence) "away" "available")
+                     status))
+    (send state presence-status status person)
     (when (and (:online? presence)
                (not (:away? presence)))
       (send state presence-newbie person)
