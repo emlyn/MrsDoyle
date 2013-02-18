@@ -38,7 +38,11 @@ Stack: %s
 
 (def state (agent default-state
                   :error-mode :continue
-                  :error-handler log-error!))
+                  :error-handler log-error!
+                  :validator #(and (set? (:informed %))
+                                   (set? (:drinkers %))
+                                   (set? (:setting-prefs %))
+                                   (vector? (:actions %)))))
 
 (def config (atom nil))
 (def at-pool (atom nil))

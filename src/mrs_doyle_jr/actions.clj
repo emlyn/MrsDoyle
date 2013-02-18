@@ -1,6 +1,5 @@
 (ns mrs-doyle-jr.actions
   (:require
-   [mrs-doyle-jr.util :as util]
    [mrs-doyle-jr.conversation :as conv]
    [mrs-doyle-jr.stats :as stats]
    [clojure.set :refer [union]]
@@ -49,7 +48,7 @@
         ids (map :_id candidates)]
     (doseq [addr ids]
       (send-message! conn addr (conv/want-tea)))
-    (update-in state [:informed] union ids)))
+    (update-in state [:informed] union (set ids))))
 
 (defn tea-countdown [state pool duration handler]
   (fn [conn]
