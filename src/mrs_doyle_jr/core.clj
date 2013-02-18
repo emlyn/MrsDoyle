@@ -240,11 +240,11 @@ Stack: %s
                     (action/subscribe other)
                     (action/send-message (:_id person) (conv/add-person)))))
 
-(defn message-tea [state person text]
-  (when (and (not (:tea-countdown state))
+(defn message-tea [thestate person text]
+  (when (and (not (:tea-countdown thestate))
              (re-find conv/trigger-tea text))
     (let [addr (:_id person)]
-      (-> state
+      (-> thestate
           (assoc :tea-countdown true)
           (update-in [:drinkers] conj addr)
           (update-in [:informed] conj addr)

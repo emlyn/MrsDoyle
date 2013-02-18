@@ -48,7 +48,7 @@
                                 :only [:_id])
         ids (map :_id candidates)]
     (doseq [addr ids]
-      (send-message conn addr (conv/want-tea)))
+      (send-message! conn addr (conv/want-tea)))
     (update-in state [:informed] union ids)))
 
 (defn tea-countdown [state pool duration handler]
