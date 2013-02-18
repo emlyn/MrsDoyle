@@ -11,7 +11,7 @@
 (defn re-from-b64 [b64string]
   (re-pattern (String. (b64/decode (.getBytes b64string)))))
 
-(def trigger-hello #"(?i)hi|yo|hello|mornin|afternoon|evening|hey|sup|good.*day")
+(def trigger-hello #"(?i)hi|yo|hello|mornin|afternoon|evening|hey|what'?s up|sup|good.*day")
 
 (def trigger-yes #"(?i)yes|yeh|ya|booyah|ok|please|totally|definitely|absolutely|yeah|yup|affirmative|yarr|yah|please|sure|okay|alright|yep|go on|certainly")
 
@@ -27,7 +27,7 @@
 
 (def trigger-rude (re-from-b64 "ZnVja3xzaGl0fGJvbGxvY2tzfGJpdGNofGJhc3RhcmR8cGVuaXN8Y29ja3xoZWxsIHxwaXNzfHJldGFyZHxjdW50fGNvZmZlZQ=="))
 
-(def trigger-away #"(?i)wfh|away|out|home|not here|disturb")
+(def trigger-away #"(?i)wfh|away|out|home|not here|(not|don'?t) disturb")
 
 (def trigger-question #"(?i)(who|what|how).*?$")
 
