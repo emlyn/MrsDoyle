@@ -22,18 +22,18 @@
   #(presence/subscribe-presence % addr))
 
 (defn update-person [addr key newval]
-  (fn [s] (mongo/update! :people
+  (fn [_] (mongo/update! :people
                         {:_id addr}
                         {:$set {key newval}})))
 
 (defn log-stats [maker drinkers]
   (let [now (java.util.Date.)]
-    (fn [s] (stats/log-round! now maker drinkers))))
+    (fn [_] (stats/log-round! now maker drinkers))))
 
 (defn unrecognised-text [addr text]
   (let [now (java.util.Date.)]
-    (fn [s]
-      (send-message addr (conv/huh))
+    (fn [conn]
+      (send-message! conn addr (conv/huh))
       (mongo/insert! :unrecognised {:date now
                                     :from addr
                                     :text text}))))
