@@ -140,7 +140,7 @@ Stack: %s
 (defn provided-prefs [state addr text]
   (let [clauses (s/split text #", *" 2)]
     (when (and (> (count clauses) 1)
-               (re-find conv/trigger-tea-prefs (last clauses)))
+               (conv/tea-prefs? (last clauses)))
       (append-actions state
                       (action/update-person addr
                                             :teaprefs
@@ -180,16 +180,16 @@ Stack: %s
                     (action/send-message (:_id person) (ppstr state)))))
 
 (defn message-rude [state person text]
-  (when (re-find conv/trigger-rude text)
+  (when (conv/rude? text)
     (append-actions state
                     (action/send-message (:_id person) (conv/rude)))))
 
 (defn message-question [state person text]
-  (when-let [q (re-find conv/trigger-question text)]
+  (when (conv/question? text)
     #_(respond with some stats)))
 
 (defn message-go-away [state person text]
-  (when (re-find conv/trigger-go-away text)
+  (when (conv/go-away? text)
     (let [addr (:_id person)]
       (append-actions state
                       (action/update-person addr :askme false)
@@ -210,16 +210,16 @@ Stack: %s
     (when (and (:tea-countdown state)
                (get-in state [:drinkers addr]))
       (cond
-       (re-find conv/trigger-tea-prefs text)
+       (conv/tea-prefs? text)
        (append-actions state
                        (action/update-person addr :teaprefs text)
                        (action/send-message addr (conv/like-tea-arg text)))
 
-       (re-find conv/trigger-yes text)
+       (conv/yes? text)
        (append-actions state
                        (action/send-message addr (conv/ok)))
 
-       (re-find conv/trigger-no text)
+       (conv/no? text)
        (append-actions state
                        (action/send-message addr (conv/no-backout)))))))
 
@@ -227,26 +227,26 @@ Stack: %s
   (when (:tea-countdown state)
     (let [addr (:_id person)]
       (cond
-       (re-find conv/trigger-yes text)
+       (conv/yes? text)
        (-> state
            (update-in [:drinkers] conj addr)
            (append-actions
             (action/send-message addr (conv/ah-grand)))
            (how-they-like-it-clause person text))
 
-       (re-find conv/trigger-no text)
+       (conv/no? text)
        (append-actions state
                        (action/send-message addr (conv/ah-go-on)))))))
 
 (defn message-add-person [state person text]
-  (when-let [other (re-find conv/trigger-add-person text)]
+  (when-let [other (conv/add-person? text)]
     (append-actions state
                     (action/subscribe other)
                     (action/send-message (:_id person) (conv/add-person)))))
 
 (defn message-tea [thestate person text]
   (when (and (not (:tea-countdown thestate))
-             (re-find conv/trigger-tea text))
+             (conv/tea? text))
     (let [addr (:_id person)]
       (-> thestate
           (assoc :tea-countdown true)
@@ -261,12 +261,12 @@ Stack: %s
           (how-they-like-it-clause person text)))))
 
 (defn message-hello [state person text]
-  (when (re-find conv/trigger-hello text)
+  (when (conv/hello? text)
     (append-actions state
                     (action/send-message (:_id person) (conv/greeting)))))
 
 (defn message-yes [state person text]
-  (when (re-find conv/trigger-yes text)
+  (when (conv/yes? text)
     (append-actions state
                     (if (< (- (at/now)
                               (:last-round state))
@@ -303,7 +303,7 @@ Stack: %s
 
 (defn presence-status [state status person]
   (let [available (and (:askme person)
-                       (not (re-find conv/trigger-away status)))]
+                       (not (conv/away? status)))]
     (append-actions state
                     (action/send-presence (:_id person)
                                           (presence-message available
