@@ -42,6 +42,8 @@ Stack: %s
                   :validator #(and (set? (:informed %))
                                    (set? (:drinkers %))
                                    (set? (:setting-prefs %))
+                                   (or (string? (:double-jeopardy %))
+                                       (nil?    (:double-jeopardy %)))
                                    (vector? (:actions %)))))
 
 (def config (atom nil))
@@ -121,7 +123,7 @@ Stack: %s
                           :only [:_id :teaprefs])
         prefs (reduce #(assoc % (:_id %2) (:teaprefs %2))
                       {} temp)]
-    (println "Tea's up!" maker drinkers prefs)
+    (println "Tea's up!" maker drinkers)
     (-> state
         (append-actions (when maker (action/log-stats maker drinkers)))
         (#(apply append-actions %
@@ -348,10 +350,20 @@ Stack: %s
     (presence/add-presence-listener conn (var handle-presence))
     conn))
 
-(defn -main []
-  (load-config! "config.dat")
+(defn connect! [& [fname]]
+  (load-config! (or fname "config.dat"))
   (make-at-pool!)
   (connect-mongo! (:mongo @config))
-  (connect-jabber! (:jabber @config))
+  (send state #(assoc % :double-jeopardy
+                 (:double-jeopardy
+                  (mongo/fetch-one :state
+                                   :where {:_id nil}
+                                   :only [:double-jeopardy]))))
+  (connect-jabber! (:jabber @config)))
+
+(defn -main []
+  (connect!)
+  (println "Let's make some tea!")
   (while (.isConnected @connection)
-    (Thread/sleep 100)))
+    (Thread/sleep 100))
+  (println "That's all folks!"))

@@ -28,7 +28,11 @@
 
 (defn log-stats [maker drinkers]
   (let [now (java.util.Date.)]
-    (fn [_] (stats/log-round! now maker drinkers))))
+    (fn [_]
+      (stats/log-round! now maker drinkers)
+      (mongo/update! :state
+                     {:_id nil}
+                     {:$set {:double-jeopardy maker}}))))
 
 (defn unrecognised-text [addr text]
   (let [now (java.util.Date.)]
