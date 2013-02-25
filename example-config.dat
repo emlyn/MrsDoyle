@@ -1,5 +1,5 @@
-{:tea-round-duration 180
- :just-missed-duration 120
+{:tea-round-duration 120
+ :just-missed-duration 180
  :jabber {:username "mrs.doyle@example.org"
           :password "****"}
  :mongo  {:db "mrs-doyle"
