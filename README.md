@@ -11,9 +11,23 @@ Once she has surveyed everybody in the office about their imminent desire to imb
 Setting Up:
 -----------
 
-TODO: deploying.
+* Download the code:
 
-Once she has been successfully deployed, go to your google talk client (or the chat window in your gmail) and add <yourdeployedloginname> to your contacts.
+        git clone git@github.com:emlyn/MrsDoyle.git
+
+* Copy the example config file to edit the login and password and any other settings you want to change:
+
+        cd MrsDoyle
+        cp example-config.dat config.dat
+        <editor> config.dat
+
+* Make sure you have [mongoDB](http://www.mongodb.org/) running locally, or edit the config file to point it to another machine.
+* If you don't have it already, install [Leiningen](https://github.com/technomancy/leiningen).
+* Start her up!
+
+        lein run
+
+The first run will take a while as all the dependencies have to be downloaded, but the next times should be faster. Once she has been successfully deployed, go to your google talk client (or the chat window in your gmail) and add <yourdeployedloginname> to your contacts.
 
 You should now be able to talk to her, and if you mention tea, she will ask everyone who is online whether they want tea. They then have 120 seconds to answer yes or no, after which Mrs Doyle will select somebody at random who has to make the tea (weighted for fairness towards people who have drunk more than they've made). They will receive a list of all the people they have to brew for.
 
@@ -28,7 +42,7 @@ Usage tips:
 * Once you have said yes, there is no backing out.
 * If you are busy and do not wish to be disturbed, simply say so and she will leave you alone until you next talk to her (she may set a sulky status until you do!)
 * If you want to invite new people to take part, you can simply tell Mrs Doyle about them and she will go invite them to chat and introduce herself!
-* TODO: accessing stats.
+* After she has handled a few rounds, try asking "who has drunk most?", "who has made most?" or "what are my stats?"
 
 Finally
 --------------
