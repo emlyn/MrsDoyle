@@ -69,8 +69,51 @@ Stack: %s
 (defn build-well-volunteered-message [maker prefs]
   (reduce str
           (conv/well-volunteered)
-          (map #(str "\n * " (get-salutation %) " (" (prefs %) ")")
+          (map #(format "\n * %s: %s" (get-salutation %) (prefs %))
                (filter (partial not= maker) (keys prefs)))))
+
+(defn build-drunk-most-reply []
+  (let [result (mongo/aggregate :cups
+                                ;{:$match {:date last-week/month etc}}
+                                {:$group {:_id :$drinker
+                                          :drunk {:$sum 1}}}
+                                {:$sort {:drunk -1}}
+                                {:$limit 3})]
+    (reduce str
+            (conv/greediest)
+            (map #(format "\n * %s (%d cup%s)"
+                          (get-salutation (:_id %))
+                          (:drunk %)
+                          (if (= 1 (:drunk %)) "" "s"))
+                 (:result result)))))
+
+(defn build-made-most-reply []
+  (let [result (mongo/aggregate :rounds
+                                ;{:$match {:date last-week/month etc}}
+                                {:$group {:_id :$maker
+                                          :cups {:$sum :$cups}
+                                          :rounds {:$sum 1}}}
+                                {:$sort [{:cups -1} {:rounds -1}]}
+                                {:$limit 3})]
+    (reduce str
+            (conv/industrious)
+            (map #(format "\n * %s (%d cup%s in %d round%s)"
+                          (get-salutation (:_id %))
+                          (:cups %)
+                          (if (= 1 (:drunk %)) "" "s")
+                          (:rounds %)
+                          (if (= 1 (:rounds %)) "" "s"))
+                 (:result result)))))
+
+(defn build-stats-message [addr]
+  (let [stats ((stats/get-user-stats [addr]) addr)
+        [drunk made] (map #(int (+ 0.5 %)) stats)
+        rounds (mongo/fetch-count :rounds
+                                  :where {:maker addr})]
+    (format "You have drunk %d cup%s of tea, and made %d in %d round%s."
+            drunk (if (= 1 drunk) "" "s")
+            made
+            rounds (if (= 1 rounds) "" "s"))))
 
 (defn append-actions [state & actions]
   (apply update-in state [:actions] conj actions))
@@ -109,10 +152,8 @@ Stack: %s
 (defn select-tea-maker [dj drinkers]
   (when (> (count drinkers) 1)
     (let [stats (stats/get-user-stats drinkers)
-          weights (map #(weight (or (stats %) [0 0])) drinkers)
-          maker (select-by-weight drinkers weights)]
-      (println "Stats:" (map str drinkers stats weights))
-      maker)))
+          weights (map #(weight (or (stats %) [0 0])) drinkers)]
+      (select-by-weight drinkers weights))))
 
 (defn process-tea-round [state]
   (let [dj (:double-jeopardy state)
@@ -187,8 +228,22 @@ Stack: %s
                     (action/send-message (:_id person) (conv/rude)))))
 
 (defn message-question [state person text]
-  (when (conv/question? text)
-    #_(respond with some stats)))
+  (when (conv/who? text)
+    (when (conv/most? text)
+      (append-actions state
+                      (cond
+                       (conv/drunk? text)
+                       (action/send-message (:_id person) (build-drunk-most-reply))
+
+                       (conv/made? text)
+                       (action/send-message (:_id person) (build-made-most-reply))
+
+                       :else
+                       (action/unrecognised-text (:_id person) text)))))
+  (when (and (conv/what? text)
+             (conv/stats? text))
+    (append-actions state
+                    (action/send-message (:_id person) (build-stats-message (:_id person))))))
 
 (defn message-go-away [state person text]
   (when (conv/go-away? text)
@@ -293,6 +348,7 @@ Stack: %s
                         message-rude
                         message-go-away
                         message-setting-prefs
+                        message-question
                         message-drinker
                         message-countdown
                         message-add-person
