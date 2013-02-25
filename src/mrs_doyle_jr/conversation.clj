@@ -18,11 +18,11 @@
 (def tea-prefs?  (respond-to "earl gr[ae]y|mint|milk|sugar|honey|lemon|white|black|roibos|chai|green tea|ceylon|camomile|herbal tea|herb tea"))
 (def go-away?    (respond-to "go away|busy|from home|not today|not in|wfh|shut up"))
 (def away?       (respond-to "wfh|away|out|home|not here|(not|don'?t) disturb"))
-(def who?        (respond-to "who .+?$"))
+(def who?        (respond-to "who .+[?]$"))
 (def most?       (respond-to "most|more"))
 (def drunk?      (respond-to "dr[ua]nk|drinks"))
 (def made?       (respond-to "made|makes|brewed"))
-(def what?       (respond-to "what[ '].+?$"))
+(def what?       (respond-to "what[ '].+[?]$"))
 (def stats?      (respond-to "stat"))
 (def rude?       (respond-to (decode-str "ZnVja3xzaGl0fGJvbGxvY2tzfGJpdGNofGJhc3RhcmR8cGVuaXN8Y29ja3xoZWxsIHxwaXNzfHJldGFyZHxjdW50fGNvZmZlZXxzd3lwZQ==")))
 

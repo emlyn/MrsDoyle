@@ -93,7 +93,7 @@ Stack: %s
                                 {:$group {:_id :$maker
                                           :cups {:$sum :$cups}
                                           :rounds {:$sum 1}}}
-                                {:$sort [{:cups -1} {:rounds -1}]}
+                                {:$sort (array-map :cups -1 :rounds -1)}
                                 {:$limit 3})]
     (reduce str
             (conv/industrious)
@@ -227,19 +227,21 @@ Stack: %s
     (append-actions state
                     (action/send-message (:_id person) (conv/rude)))))
 
-(defn message-question [state person text]
-  (when (conv/who? text)
-    (when (conv/most? text)
-      (append-actions state
-                      (cond
-                       (conv/drunk? text)
-                       (action/send-message (:_id person) (build-drunk-most-reply))
+(defn message-question-who [state person text]
+  (when (and (conv/who? text)
+             (conv/most? text))
+    (append-actions state
+                    (cond
+                     (conv/drunk? text)
+                     (action/send-message (:_id person) (build-drunk-most-reply))
 
-                       (conv/made? text)
-                       (action/send-message (:_id person) (build-made-most-reply))
+                     (conv/made? text)
+                     (action/send-message (:_id person) (build-made-most-reply))
 
-                       :else
-                       (action/unrecognised-text (:_id person) text)))))
+                     :else
+                     (action/unrecognised-text (:_id person) text)))))
+
+(defn message-question-what [state person text]
   (when (and (conv/what? text)
              (conv/stats? text))
     (append-actions state
@@ -336,28 +338,29 @@ Stack: %s
                   (action/unrecognised-text (:_id person) text)))
 
 (defn handle-message [conn msg]
-  (let [text (or (:body msg) "")
-        addr (:from msg)
-        person (get-person! addr)]
-    (println (format "Received (%s): %s" addr text))
-    (send state append-actions
-          (action/update-person addr :askme true))
-    (send state in-round person)
-    (send state #(some (fn [f] (f % person text))
-                       [message-dbg
-                        message-rude
-                        message-go-away
-                        message-setting-prefs
-                        message-question
-                        message-drinker
-                        message-countdown
-                        message-add-person
-                        message-tea
-                        message-hello
-                        message-yes
-                        message-huh])))
-  (send state process-actions! conn)
-  nil)
+  (when-let [text (:body msg)]
+    (let [addr (:from msg)
+          person (get-person! addr)]
+      (println (format "Received (%s): %s" addr text))
+      (send state append-actions
+            (action/update-person addr :askme true))
+      (send state in-round person)
+      (send state #(some (fn [f] (f % person text))
+                         [message-dbg
+                          message-rude
+                          message-go-away
+                          message-setting-prefs
+                          message-question-who
+                          message-question-what
+                          message-drinker
+                          message-countdown
+                          message-add-person
+                          message-tea
+                          message-hello
+                          message-yes
+                          message-huh]))
+      (send state process-actions! conn)
+      nil)))
 
 (defn presence-status [state status person]
   (let [available (and (:askme person)
