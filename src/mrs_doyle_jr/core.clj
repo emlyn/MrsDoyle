@@ -281,7 +281,7 @@ Stack: %s
                   (action/unrecognised-text (:_id person) text)))
 
 (defn handle-message [conn msg]
-  (let [text (:body msg)
+  (let [text (or (:body msg) "")
         addr (:from msg)
         person (get-person! addr)]
     (println (format "Received (%s): %s" addr text))
