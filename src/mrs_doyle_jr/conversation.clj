@@ -11,14 +11,19 @@
   #(boolean (re-find (re-pattern (str "(?i)" re)) %)))
 
 (def hello?      (respond-to "hi|yo|hello|mornin|afternoon|evening|hey|what'?s up|sup|gutten |ciao|hola|bonjour|salut"))
-(def yes?        (respond-to "yes|yeh|\bya\b|booyah|ok|please|totally|definitely|absolutely|yeah|yup|affirmative|yarr|yah|please|sure|okay|alright|yep|go on|certainly|\bsi\b|oui|\bja\b"))
-(def no?         (respond-to "\bno\b|nah|nar|never|negative|nein|\bnon\b|changed"))
+(def yes?        (respond-to "yes|yeh|\bya\b|booyah|ok|please|totally|definitely|absolutely|yeah|yup|affirmative|yarr|yah|please|sure|okay|alright|yep|go on|certainly|(good|great|nice|fantastic) idea|\bsi\b|oui|\bja\b"))
+(def no?         (respond-to "\bno\b|\bnot\b|nah|nar|never|negative|nein|\bnon\b|changed"))
 (def tea?        (respond-to "cuppa|tea|brew|cup|drink|beverage|refreshment"))
 (def add-person? (respond-to "\b[A-Z0-9._%+-]+@[A-Z0-9.-]+[.][A-Z]{2,4}\b"))
 (def tea-prefs?  (respond-to "earl gr[ae]y|mint|milk|sugar|honey|lemon|white|black|roibos|chai|green tea|ceylon|camomile|herbal tea|herb tea"))
 (def go-away?    (respond-to "go away|busy|from home|not today|not in|wfh|shut up"))
 (def away?       (respond-to "wfh|away|out|home|not here|(not|don'?t) disturb"))
-(def question?   (respond-to "(who|what|how).*?$"))
+(def who?        (respond-to "who .+?$"))
+(def most?       (respond-to "most|more"))
+(def drunk?      (respond-to "dr[ua]nk|drinks"))
+(def made?       (respond-to "made|makes|brewed"))
+(def what?       (respond-to "what[ '].+?$"))
+(def stats?      (respond-to "stat"))
 (def rude?       (respond-to (decode-str "ZnVja3xzaGl0fGJvbGxvY2tzfGJpdGNofGJhc3RhcmR8cGVuaXN8Y29ja3xoZWxsIHxwaXNzfHJldGFyZHxjdW50fGNvZmZlZXxzd3lwZQ==")))
 
 (def newbie-greeting
@@ -176,3 +181,13 @@
           "Too slow I'm afraid"
           "Snooze you lose, we already had tea."
           "You'll have to pay closer attention next time, this round's been and gone"))
+
+(def greediest
+  (one-of "The greediest drinkers are:"
+          "Well I never, these people do drink a lot:"
+          "The REAL tea lovers are:"))
+
+(def industrious
+  (one-of "The most industrious tea makers are:"
+          "Goodness me, these people have made a lot of tea:"
+          "The REAL workers in this place are:"))
