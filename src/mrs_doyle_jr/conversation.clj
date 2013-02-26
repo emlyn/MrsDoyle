@@ -29,8 +29,8 @@
 (def newbie-greeting
   (one-of "Well hello dear, my name is Mrs Doyle Jr. As I am sure you know by the absence of tea recently, old Mrs Doyle had one of her turns had to retire.\nBut I will do my best to take over her duties, so if you ever want tea, just ask me and I'll see what I can do! Of course if you're busy and don't want me bugging you, just say so and I'll back off."))
 
-(def alone-status-arg
-  (one-of-arg ":( Leaving %s alone. So alone..."))
+(def alone-status
+  (one-of ":( Leaving you alone. So alone..."))
 
 (def like-tea-arg
   (one-of-arg "So you like your tea '%s'?"))

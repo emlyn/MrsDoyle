@@ -204,7 +204,7 @@ Stack: %s
 (defn presence-message [askme addr]
   (if askme
     ""
-    (conv/alone-status-arg (get-salutation addr))))
+    (conv/alone-status)))
 
 (defn in-round [state person]
   (let [addr (:_id person)]
