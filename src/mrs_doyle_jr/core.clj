@@ -381,10 +381,10 @@ Stack: %s
   (let [addr (:jid presence)
         person (get-person! addr)
         status (or (:status presence) "")]
-    (println (format "Presence (%s): %s %s '%s'"
+    (println (format "Presence %s %s (%s): '%s'"
+                     (if (:online? presence) " online" "offline")
+                     (if (:away? presence) "away" "here")
                      addr
-                     (if (:online? presence) "online" "offline")
-                     (if (:away? presence) "away" "available")
                      status))
     (send state presence-status status person)
     (when (and (:online? presence)
