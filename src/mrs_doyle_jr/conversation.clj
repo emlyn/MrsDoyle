@@ -18,11 +18,12 @@
 (def tea-prefs?  (respond-to "earl gr[ae]y|mint|milk|sugar|honey|lemon|white|black|roibos|chai|green tea|ceylon|camomile|herbal tea|herb tea"))
 (def go-away?    (respond-to "go away|busy|from home|not today|not in|wfh|shut up"))
 (def away?       (respond-to "wfh|away|out|home|not here|(not|don'?t) disturb"))
-(def who?        (respond-to "who .+[?]$"))
+(def who?        (respond-to "who('s|'re)? .+[?]$"))
 (def most?       (respond-to "most|more"))
 (def drunk?      (respond-to "dr[ua]nk|drinks"))
 (def made?       (respond-to "made|makes|brewed"))
-(def what?       (respond-to "what[ '].+[?]$"))
+(def available?  (respond-to "on ?line|available"))
+(def what?       (respond-to "what('s|'re)? .+[?]$"))
 (def stats?      (respond-to "stat"))
 (def rude?       (respond-to (decode-str "ZnVja3xzaGl0fGJvbGxvY2tzfGJpdGNofGJhc3RhcmR8cGVuaXN8Y29ja3xoZWxsIHxwaXNzfHJldGFyZHxjdW50fGNvZmZlZXxzd3lwZQ==")))
 
@@ -181,6 +182,11 @@
           "Too slow I'm afraid"
           "Snooze you lose, we already had tea."
           "You'll have to pay closer attention next time, this round's been and gone"))
+
+(def available
+  (one-of "Here are the people that might be interested in a drink:"
+          "These people might be available at the moment:"
+          "Why don't you ask these people if they are thirsty:"))
 
 (def greediest
   (one-of "The greediest drinkers are:"

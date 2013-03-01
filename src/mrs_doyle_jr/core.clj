@@ -72,6 +72,18 @@ Stack: %s
           (map #(format "\n * %s: %s" (get-salutation %) (prefs %))
                (filter (partial not= maker) (keys prefs)))))
 
+(defn build-available-reply [addr]
+  (let [connected (jabber/available @connection)
+        available (mongo/fetch :people
+                               :where {:askme true}
+                               :only [:_id])
+        people (filter (partial not= addr)
+                       (map :_id available))]
+    (reduce str
+            (conv/available)
+            (map #(format "\n * %s" (get-salutation %))
+                 people))))
+
 (defn build-drunk-most-reply []
   (let [result (mongo/aggregate :cups
                                 ;{:$match {:date last-week/month etc}}
@@ -228,18 +240,23 @@ Stack: %s
                     (action/send-message (:_id person) (conv/rude)))))
 
 (defn message-question-who [state person text]
-  (when (and (conv/who? text)
-             (conv/most? text))
-    (append-actions state
-                    (cond
-                     (conv/drunk? text)
-                     (action/send-message (:_id person) (build-drunk-most-reply))
+  (when (conv/who? text)
+    (cond
+     (conv/available? text)
+     (append-actions state (action/send-message (:_id person)
+                                                (build-available-reply (:_id person))))
 
-                     (conv/made? text)
-                     (action/send-message (:_id person) (build-made-most-reply))
+     (conv/most? text)
+     (append-actions state
+                     (cond
+                      (conv/drunk? text)
+                      (action/send-message (:_id person) (build-drunk-most-reply))
 
-                     :else
-                     (action/unrecognised-text (:_id person) text)))))
+                      (conv/made? text)
+                      (action/send-message (:_id person) (build-made-most-reply))
+
+                      :else
+                      (action/unrecognised-text (:_id person) text))))))
 
 (defn message-question-what [state person text]
   (when (and (conv/what? text)
