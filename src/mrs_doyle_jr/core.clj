@@ -239,6 +239,11 @@ Stack: %s
     (append-actions state
                     (action/send-message (:_id person) (conv/rude)))))
 
+(defn message-gordon [state person text]
+  (when (conv/gordon? text)
+    (append-actions state
+                    (action/send-message (:_id person) (conv/gordon)))))
+
 (defn message-question-who [state person text]
   (when (conv/who? text)
     (cond
@@ -367,6 +372,7 @@ Stack: %s
                           message-rude
                           message-go-away
                           message-setting-prefs
+                          message-gordon
                           message-question-who
                           message-question-what
                           message-drinker

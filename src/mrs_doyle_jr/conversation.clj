@@ -18,6 +18,7 @@
 (def tea-prefs?  (respond-to "earl gr[ae]y|mint|milk|sugar|honey|lemon|white|black|roibos|chai|green tea|ceylon|camomile|herbal tea|herb tea"))
 (def go-away?    (respond-to "go away|busy|from home|not today|not in|wfh|shut up"))
 (def away?       (respond-to "wfh|away|out|home|not here|(not|don'?t) disturb"))
+(def gordon?     (respond-to "^(what is|who knows about|who can I talk to about|who do I talk to about) \".*\""))
 (def who?        (respond-to "who('s|'re)? .+[?]$"))
 (def most?       (respond-to "most|more"))
 (def drunk?      (respond-to "dr[ua]nk|drinks"))
@@ -197,3 +198,11 @@
   (one-of "The most industrious tea makers are:"
           "Goodness me, these people have made a lot of tea:"
           "The REAL workers in this place are:"))
+
+(def gordon
+  (one-of "I don't know about that, why don't you ask Gordon?"
+          "Maybe you should speak to Gordon about that."
+          "I think Gordon might know something about that."
+          "I'm not sure, maybe try Gordon?"
+          "Why, you do ask the strangest things! Why don't you go and pester Gordon?"
+          "That's really not my cup of tea, have you asked Gordon?"))
