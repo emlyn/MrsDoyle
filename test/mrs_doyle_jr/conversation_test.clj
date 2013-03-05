@@ -5,6 +5,15 @@
 (facts "about conversation"
 
        (fact "responds"
+             (let [pred (respond-to "a" "b")]
+               (pred "b") => truthy
+               (pred "a c") => truthy
+               (pred "ab") => falsey)
+             (let [pred (respond-to "^a" "b$")]
+               (pred "a c") => truthy
+               (pred "c b") => truthy
+               (pred "b a") => falsey
+               (pred "ab") => falsey)
              (hello? "Good morning!") => truthy
              (hello? "Goodbye") => falsey
              (add-person? "Mrs.Doyle@swiftkey.net") => truthy
