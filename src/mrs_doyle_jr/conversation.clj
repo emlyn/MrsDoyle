@@ -1,5 +1,6 @@
 (ns mrs-doyle-jr.conversation
-  (:require [remvee.base64 :refer [decode-str]]))
+  (:require [clojure.string :refer [join split]]
+            [remvee.base64 :refer [decode-str]]))
 
 (defn one-of [& statements]
   (fn [] (rand-nth statements)))
@@ -7,26 +8,52 @@
 (defn one-of-arg [& statements]
   (fn [arg] (format (rand-nth statements) arg)))
 
-(defn respond-to [re]
-  #(re-find (re-pattern (str "(?i)" re)) %))
+(defn respond-to [& patterns]
+  (fn [s] (re-find (re-pattern (str
+                               "(?i)"
+                               (join "|"
+                                     (map #(str (when-not (.startsWith % "^")
+                                                  "\\b")
+                                                %
+                                                (when-not (or (.endsWith % "$")
+                                                              (.endsWith % "\""))
+                                                  "\\b"))
+                                          patterns))))
+                  s)))
 
-(def hello?      (respond-to "hi|yo|hello|mornin|afternoon|evening|hey|what'?s up|sup|gutten |ciao|hola|bonjour|salut"))
-(def yes?        (respond-to "yes|yeh|\\bya\\b|booyah|ok|please|totally|definitely|absolutely|yeah|yup|affirmative|yarr|yah|please|sure|okay|alright|yep|go on|certainly|(good|great|nice|fantastic) idea|\bsi\b|oui|\bja\b"))
-(def no?         (respond-to "\\bno\\b|\\bnot\\b|nah|nar|never|negative|nein|\\bnon\\b|changed"))
-(def tea?        (respond-to "cuppa|tea|brew|cup|drink|beverage|refreshment"))
-(def add-person? (respond-to "\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+[.][A-Z]{2,4}\\b"))
-(def tea-prefs?  (respond-to "earl gr[ae]y|mint|milk|sugar|honey|lemon|white|black|roibos|chai|green tea|ceylon|camomile|herbal tea|herb tea"))
-(def go-away?    (respond-to "go away|busy|from home|not today|not in|wfh|shut up"))
-(def away?       (respond-to "wfh|away|out|home|not here|(not|don'?t) disturb"))
-(def gordon?     (respond-to "^(what is|who knows about|who can I talk to about|who do I talk to about) \".*\""))
+(def hello?      (respond-to "hi" "yo" "hello" "hey" "morning?" "afternoon"
+                             "evening?" "sup" "what'?s up" "wassup" "gutten"
+                             "ciao" "hola" "bonjour" "salut"))
+(def yes?        (respond-to "yes" "yeah" "yeh" "ya" "yup" "yep" "booyah?"
+                             "ok" "okay" "alright" "please" "totally"
+                             "definitely" "absolutely" "affirmative" "yarr?"
+                             "yah" "go on" "certainly" "si" "ja" "oui"
+                             "(good|great|nice|fantastic) idea"))
+(def no?         (respond-to "no" "not" "nah" "nar" "never" "negative" "nein"
+                             "non" "changed" "don'?t"))
+(def tea?        (respond-to "cuppa" "tea" "brew" "cup" "drink" "beverage"
+                             "refreshment"))
+(def add-person? (respond-to "[A-Z0-9._%+-]+@[A-Z0-9.-]+[.][A-Z]{2,4}"))
+(def tea-prefs?  (respond-to "earl gr[ae]y" "mint" "milk" "sugar" "honey"
+                             "lemon" "white" "black" "green" "roo?ibos" "chai"
+                             "ceylon" "camomile" "herb(al)? tea"))
+(def go-away?    (respond-to "go away" "busy" "from home" "not today" "not in"
+                             "wfh" "shut up"))
+(def away?       (respond-to "wfh" "away" "out" "home" "not here"
+                             "(not|don'?t) disturb"))
+(def gordon?     (respond-to "^what is \".*\"" "^who knows about \".*\""
+                             "^who (can|do) I talk to about \".*\""))
 (def who?        (respond-to "who('s|'re)? .+[?]$"))
-(def most?       (respond-to "most|more"))
-(def drunk?      (respond-to "dr[ua]nk|drinks"))
-(def made?       (respond-to "made|makes|brewed"))
-(def available?  (respond-to "on ?line|available"))
+(def most?       (respond-to "most" "more"))
+(def drunk?      (respond-to "dr[ua]nk" "drinks"))
+(def made?       (respond-to "made" "makes" "brewed"))
+(def available?  (respond-to "on ?line" "available"))
 (def what?       (respond-to "what('s|'re)? .+[?]$"))
-(def stats?      (respond-to "stat"))
-(def rude?       (respond-to (decode-str "ZnVja3xzaGl0fGJvbGxvY2tzfGJpdGNofGJhc3RhcmR8cGVuaXN8Y29ja3xoZWxsIHxwaXNzfHJldGFyZHxjdW50fGNvZmZlZXxzd3lwZQ==")))
+(def stats?      (respond-to "stats?" "statistics?"))
+(def rude?       (apply respond-to (split (decode-str (str
+                             "ZnVja3xzaGl0fGJvbGxvY2tzfGJpdGNofGJhc3RhcmR8cGVuaXN8"
+                             "Y29ja3xoZWxsfHBpc3N8cmV0YXJkfGN1bnR8Y29mZmVlfHN3eXBl"))
+                                          #"[|]")))
 
 (def newbie-greeting
   (one-of "Well hello dear, my name is Mrs Doyle Jr. As I am sure you know by the absence of tea recently, old Mrs Doyle had one of her turns had to retire.\nBut I will do my best to take over her duties, so if you ever want tea, just ask me and I'll see what I can do! Of course if you're busy and don't want me bugging you, just say so and I'll back off."))

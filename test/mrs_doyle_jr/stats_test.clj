@@ -5,7 +5,7 @@
 
 (facts "about stats"
 
-       (fact "updates stats"
+       #_(fact "updates stats"
              (update-stats "polly" ["polly" "sukey" "other"]) => nil
              (provided (now) => ..now..
                        (stat-round   ..now.. "polly"  3) => nil :times 1

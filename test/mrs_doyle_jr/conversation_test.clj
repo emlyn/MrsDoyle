@@ -1,12 +1,15 @@
 (ns mrs-doyle-jr.conversation-test
   (:require [mrs-doyle-jr.conversation :refer :all]
-            [midje.sweet :refer [fact facts contains]]))
+            [midje.sweet :refer :all :exclude [one-of]]))
 
 (facts "about conversation"
 
-       (fact "decodes base64 regex"
-             (re-from-b64 "XltKdXN0XSp0ZXN0aW5nJA==") => #"^[Just]*testing$"
-             (str trigger-rude) => (contains "coffee"))
+       (fact "responds"
+             (hello? "Good morning!") => truthy
+             (hello? "Goodbye") => falsey
+             (add-person? "Mrs.Doyle@swiftkey.net") => truthy
+             (gordon? "What is \"tea\"") => truthy
+             (rude? "I like coffee") => truthy)
 
        (fact "randomizes text"
              (let [options ["zero" "one" "two"]

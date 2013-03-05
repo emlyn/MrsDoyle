@@ -74,8 +74,8 @@
                                               "other@example.org" "hot"})
              => (every-checker
                  (contains "well-volunteered")
-                 (contains "Sukey (sugar)")
-                 (contains "Other (hot)"))
+                 (contains "Sukey: sugar")
+                 (contains "Other: hot"))
              (provided (conv/well-volunteered) => "well-volunteered"))
 
        (fact "doesn't like leaving people alone"
