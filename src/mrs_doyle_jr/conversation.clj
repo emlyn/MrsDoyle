@@ -8,13 +8,13 @@
   (fn [arg] (format (rand-nth statements) arg)))
 
 (defn respond-to [re]
-  #(boolean (re-find (re-pattern (str "(?i)" re)) %)))
+  #(re-find (re-pattern (str "(?i)" re)) %))
 
 (def hello?      (respond-to "hi|yo|hello|mornin|afternoon|evening|hey|what'?s up|sup|gutten |ciao|hola|bonjour|salut"))
-(def yes?        (respond-to "yes|yeh|\bya\b|booyah|ok|please|totally|definitely|absolutely|yeah|yup|affirmative|yarr|yah|please|sure|okay|alright|yep|go on|certainly|(good|great|nice|fantastic) idea|\bsi\b|oui|\bja\b"))
-(def no?         (respond-to "\bno\b|\bnot\b|nah|nar|never|negative|nein|\bnon\b|changed"))
+(def yes?        (respond-to "yes|yeh|\\bya\\b|booyah|ok|please|totally|definitely|absolutely|yeah|yup|affirmative|yarr|yah|please|sure|okay|alright|yep|go on|certainly|(good|great|nice|fantastic) idea|\bsi\b|oui|\bja\b"))
+(def no?         (respond-to "\\bno\\b|\\bnot\\b|nah|nar|never|negative|nein|\\bnon\\b|changed"))
 (def tea?        (respond-to "cuppa|tea|brew|cup|drink|beverage|refreshment"))
-(def add-person? (respond-to "\b[A-Z0-9._%+-]+@[A-Z0-9.-]+[.][A-Z]{2,4}\b"))
+(def add-person? (respond-to "\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+[.][A-Z]{2,4}\\b"))
 (def tea-prefs?  (respond-to "earl gr[ae]y|mint|milk|sugar|honey|lemon|white|black|roibos|chai|green tea|ceylon|camomile|herbal tea|herb tea"))
 (def go-away?    (respond-to "go away|busy|from home|not today|not in|wfh|shut up"))
 (def away?       (respond-to "wfh|away|out|home|not here|(not|don'?t) disturb"))

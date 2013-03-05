@@ -164,8 +164,16 @@ Stack: %s
 (defn select-tea-maker [dj drinkers]
   (when (> (count drinkers) 1)
     (let [stats (stats/get-user-stats drinkers)
-          weights (map #(weight (or (stats %) [0 0])) drinkers)]
-      (select-by-weight drinkers weights))))
+          weights (map #(weight (or (stats %) [0 0])) drinkers)
+          maker (select-by-weight drinkers weights)]
+      (println (apply str "Tea round:"
+                      (map #(format "\n %s %s (%s)"
+                                    (case (= maker %1) ">"
+                                          (= dj %1)    "-"
+                                          :else        "*")
+                                    %1 %2)
+                           drinkers weights)))
+      maker)))
 
 (defn process-tea-round [state]
   (let [dj (:double-jeopardy state)
@@ -176,7 +184,6 @@ Stack: %s
                           :only [:_id :teaprefs])
         prefs (reduce #(assoc % (:_id %2) (:teaprefs %2))
                       {} temp)]
-    (println "Tea's up!" maker drinkers)
     (-> state
         (append-actions (when maker (action/log-stats maker drinkers)))
         (#(apply append-actions %
