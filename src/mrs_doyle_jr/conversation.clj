@@ -26,7 +26,7 @@
                              "evening?" "sup" "what'?s up" "wassup" "gutten"
                              "ciao" "hola" "bonjour" "salut"))
 (def yes?        (respond-to "yes" "yeah" "yeh" "ya" "yup" "yep" "booyah?"
-                             "ok" "okay" "alright" "please" "totally"
+                             "ok" "okay" "alright" "please" "totally" "sure"
                              "definitely" "absolutely" "affirmative" "yarr?"
                              "yah" "go on" "certainly" "si" "ja" "oui"
                              "(good|great|nice|fantastic) idea"))
