@@ -183,7 +183,7 @@ Stack: %s
 
 (defn select-tea-maker [dj drinkers]
   (when (> (count drinkers) 1)
-    (let [potential (map (partial not= dj) drinkers)
+    (let [potential (filter (partial not= dj) drinkers)
           stats (stats/get-user-stats potential)
           weights (map (comp (partial weight
                                       (:minimum-made @config 1)
