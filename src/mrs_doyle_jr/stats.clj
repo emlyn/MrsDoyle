@@ -25,9 +25,8 @@
                        0)))))
 
 (defn get-user-stats [names]
-  (let [r (mongo/fetch :people
-                       :where {:_id {:$in names}}
-                       :only [:_id :drunk :made])]
+  (let [r (mongo/fetch-by-ids :people names
+                              :only [:_id :drunk :made])]
     (reduce #(assoc % (:_id %2)
                     [(or (:drunk %2) 0)
                      (or (:made %2) 0)])

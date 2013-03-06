@@ -55,7 +55,7 @@ Stack: %s
                                :newbie true
                                :askme true})
        (catch com.mongodb.MongoException$DuplicateKey e
-         (mongo/fetch-one :people :where {:_id addr}))))
+         (mongo/fetch-by-id :people addr))))
 
 (defn get-salutation [addr]
   (s/replace
@@ -203,9 +203,8 @@ Stack: %s
         ; Convert set to vector, shuffle to protect against any bias in selection.
         drinkers (shuffle (:drinkers state))
         maker (select-tea-maker dj drinkers)
-        temp (mongo/fetch :people
-                          :where {:_id {:$in drinkers}}
-                          :only [:_id :teaprefs])
+        temp (mongo/fetch-by-ids :people drinkers
+                                 :only [:_id :teaprefs])
         prefs (reduce #(assoc % (:_id %2) (:teaprefs %2))
                       {} temp)]
     (-> state
@@ -477,9 +476,8 @@ Stack: %s
   (connect-mongo! (:mongo @config))
   (send state #(assoc % :double-jeopardy
                  (:double-jeopardy
-                  (mongo/fetch-one :state
-                                   :where {:_id nil}
-                                   :only [:double-jeopardy]))))
+                  (mongo/fetch-by-id :state nil
+                                     :only [:double-jeopardy]))))
   (connect-jabber! (:jabber @config)))
 
 (defn -main []
