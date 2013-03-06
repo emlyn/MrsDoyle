@@ -174,26 +174,34 @@ Stack: %s
               (map #(when (>= % r) %2)
                    cweight options))))))
 
-(defn weight [[drunk made]]
-  (/ drunk (max 1 made)))
+(defn weight [min-made fairness stats]
+  (let [[drunk made] (or stats [0 0])]
+    (Math/pow (/ drunk
+                 (max made
+                      min-made))
+              fairness)))
 
 (defn select-tea-maker [dj drinkers]
   (when (> (count drinkers) 1)
-    (let [stats (stats/get-user-stats drinkers)
-          weights (map #(weight (or (stats %) [0 0])) drinkers)
-          maker (select-by-weight drinkers weights)]
-      (println (apply str "Tea round:"
-                      (map #(format "\n %s %s (%s = %.3f)"
-                                    (cond (= maker %1) ">"
-                                          (= dj %1)    "-"
-                                          :else        "*")
-                                    %1 %2 (double %2))
-                           drinkers weights)))
+    (let [potential (map (partial not= dj) drinkers)
+          stats (stats/get-user-stats potential)
+          weights (map (comp (partial weight
+                                      (:minimum-made @config 1)
+                                      (:fairness-factor @config 1.0))
+                             stats)
+                       potential)
+          maker (select-by-weight potential weights)]
+      (println (apply str "Tea round (" dj ")"
+                      (map #(format "\n %s %s (%s: %.3f)"
+                                    (if (= maker %1) ">" "-")
+                                    %1 (or %2 [0 0]) %3)
+                           potential (map stats potential) weights)))
       maker)))
 
 (defn process-tea-round [state]
   (let [dj (:double-jeopardy state)
-        drinkers (vec (:drinkers state))
+        ; Convert set to vector, shuffle to protect against any bias in selection.
+        drinkers (shuffle (:drinkers state))
         maker (select-tea-maker dj drinkers)
         temp (mongo/fetch :people
                           :where {:_id {:$in drinkers}}
