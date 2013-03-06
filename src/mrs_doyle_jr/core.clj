@@ -182,12 +182,12 @@ Stack: %s
     (let [stats (stats/get-user-stats drinkers)
           weights (map #(weight (or (stats %) [0 0])) drinkers)
           maker (select-by-weight drinkers weights)]
-      (println (apply str "Tea round: " maker ";" dj
-                      (map #(format "\n %s %s (%s)"
-                                    (case (= maker %1) ">"
+      (println (apply str "Tea round:"
+                      (map #(format "\n %s %s (%s = %.3f)"
+                                    (cond (= maker %1) ">"
                                           (= dj %1)    "-"
                                           :else        "*")
-                                    %1 %2)
+                                    %1 %2 (double %2))
                            drinkers weights)))
       maker)))
 
