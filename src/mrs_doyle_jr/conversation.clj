@@ -9,17 +9,18 @@
   (fn [arg] (format (rand-nth statements) arg)))
 
 (defn respond-to [& patterns]
-  (fn [s] (re-find (re-pattern (str
-                               "(?i)"
-                               (join "|"
-                                     (map #(str (when-not (.startsWith % "^")
-                                                  "\\b")
-                                                %
-                                                (when-not (or (.endsWith % "$")
-                                                              (.endsWith % "\""))
-                                                  "\\b"))
-                                          patterns))))
-                  s)))
+  (fn [s] (re-find
+          (re-pattern
+           (str "(?i)"
+                (join "|"
+                      (map #(str (when-not (.startsWith % "^")
+                                   "\\b")
+                                 %
+                                 (when-not (or (.endsWith % "$")
+                                               (.endsWith % "\""))
+                                   "\\b"))
+                           patterns))))
+          s)))
 
 (def hello?      (respond-to "hi" "yo" "hello" "hey" "morning?" "afternoon"
                              "evening?" "sup" "what'?s up" "wassup" "gutten"
@@ -48,8 +49,10 @@
 (def drunk?      (respond-to "dr[ua]nk" "drinks"))
 (def made?       (respond-to "made" "makes" "brewed"))
 (def available?  (respond-to "on ?line" "available"))
+(def luckiest?   (respond-to "luckiest" "(best|highest) .*ratio"))
+(def unluckiest? (respond-to "unluckiest" "(worst|lowest) .*ratio"))
 (def what?       (respond-to "what('s|'re)? .+[?]$"))
-(def stats?      (respond-to "stats?" "statistics?"))
+(def stats?      (respond-to "stats?" "statistics?" "info(rmation)?" "data"))
 (def rude?       (apply respond-to (split (decode-str (str
                              "ZnVja3xzaGl0fGJvbGxvY2tzfGJpdGNofGJhc3RhcmR8cGVuaXN8"
                              "Y29ja3xoZWxsfHBpc3N8cmV0YXJkfGN1bnR8Y29mZmVlfHN3eXBl"))
@@ -225,6 +228,14 @@
   (one-of "The most industrious tea makers are:"
           "Goodness me, these people have made a lot of tea:"
           "The REAL workers in this place are:"))
+
+(def luckiest
+  (one-of "I'm not sure these people have been doing their fair share:"
+          "I've got my eye on these people:"))
+
+(def unluckiest
+  (one-of "These people seem to have been doing more than their fair share:"
+          "I'll try to take it easy on these poor people:"))
 
 (def gordon
   (one-of "I don't know about that, why don't you ask Gordon?"

@@ -117,7 +117,7 @@ Stack: %s
                           (if (= 1 (:rounds %)) "" "s"))
                  (:result result)))))
 
-(defn build-stats-message [addr]
+(defn build-stats-reply [addr]
   (let [stats ((stats/get-user-stats [addr]) addr)
         [drunk made] (map #(int (+ 0.5 %)) stats)
         rounds (mongo/fetch-count :rounds
@@ -126,6 +126,22 @@ Stack: %s
             drunk (if (= 1 drunk) "" "s")
             made
             rounds (if (= 1 rounds) "" "s"))))
+
+(defn build-ratio-reply [best?]
+  (let [result (mongo/aggregate :people
+                                {:$match {:made  {:$gt 0}
+                                          :drunk {:$gt 0}}}
+                                {:$project {:_id :$_id
+                                            :drunk :$drunk
+                                            :ratio {:$divide [:$drunk :$made]}}}
+                                {:$match {:ratio {(if best? :$gt :$lt) 1.0}}}
+                                {:$sort (array-map :ratio (if best? -1 1)
+                                                   :drunk -1)}
+                                {:$limit 3})]
+    (reduce str
+            (if best? (conv/luckiest) (conv/unluckiest))
+            (map #(format "\n * %s (%.2f)" (:_id %) (double (:ratio %)))
+                 (:result result)))))
 
 (defn append-actions [state & actions]
   (apply update-in state [:actions] conj actions))
@@ -166,7 +182,7 @@ Stack: %s
     (let [stats (stats/get-user-stats drinkers)
           weights (map #(weight (or (stats %) [0 0])) drinkers)
           maker (select-by-weight drinkers weights)]
-      (println (apply str "Tea round:"
+      (println (apply str "Tea round: " maker ";" dj
                       (map #(format "\n %s %s (%s)"
                                     (case (= maker %1) ">"
                                           (= dj %1)    "-"
@@ -268,13 +284,21 @@ Stack: %s
                       (action/send-message (:_id person) (build-made-most-reply))
 
                       :else
-                      (action/unrecognised-text (:_id person) text))))))
+                      (action/unrecognised-text (:_id person) text)))
+
+     (conv/luckiest? text)
+     (append-actions state (action/send-message (:_id person)
+                                                (build-ratio-reply true)))
+
+     (conv/unluckiest? text)
+     (append-actions state (action/send-message (:_id person)
+                                                (build-ratio-reply false))))))
 
 (defn message-question-what [state person text]
   (when (and (conv/what? text)
              (conv/stats? text))
     (append-actions state
-                    (action/send-message (:_id person) (build-stats-message (:_id person))))))
+                    (action/send-message (:_id person) (build-stats-reply (:_id person))))))
 
 (defn message-go-away [state person text]
   (when (conv/go-away? text)
