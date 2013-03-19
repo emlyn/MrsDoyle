@@ -40,7 +40,7 @@
                              "ceylon" "camomile" "herb(al)? tea"))
 (def go-away?    (respond-to "go away" "busy" "from home" "not today" "not in"
                              "wfh" "shut up"))
-(def away?       (respond-to "wfh" "away" "out" "home" "not here"
+(def away?       (respond-to "wfh" "away" "out" "home" "not here" "holiday"
                              "(not|don'?t) disturb"))
 (def gordon?     (respond-to "^what is \".*\"" "^who knows about \".*\""
                              "^who (can|do) I talk to about \".*\""))
