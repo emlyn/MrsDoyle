@@ -140,7 +140,9 @@ Stack: %s
                                 {:$limit 3})]
     (reduce str
             (if best? (conv/luckiest) (conv/unluckiest))
-            (map #(format "\n * %s (%.2f)" (:_id %) (double (:ratio %)))
+            (map #(format "\n * %s (%.2f)"
+                          (get-salutation (:_id %))
+                          (double (:ratio %)))
                  (:result result)))))
 
 (defn append-actions [state & actions]
