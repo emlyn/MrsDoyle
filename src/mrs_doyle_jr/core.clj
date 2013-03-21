@@ -3,13 +3,15 @@
    [mrs-doyle-jr.conversation :as conv]
    [mrs-doyle-jr.actions :as action]
    [mrs-doyle-jr.stats :as stats]
+   [mrs-doyle-jr.web :as web]
    [quit-yo-jibber :as jabber]
    [quit-yo-jibber.presence :as presence]
    [overtone.at-at :as at]
    [clojure.string :as s]
    [clojure.stacktrace :refer [print-stack-trace]]
    [clojure.pprint :refer [pprint]]
-   [somnium.congomongo :as mongo]))
+   [somnium.congomongo :as mongo]
+   [ring.adapter.jetty :refer [run-jetty]]))
 
 (defn ppstr [o]
   (with-out-str (pprint o)))
@@ -472,6 +474,9 @@ Stack: %s
     (presence/add-presence-listener conn (var handle-presence))
     conn))
 
+(defn run-webserver [conf]
+  (run-jetty web/app-routes conf))
+
 (defn connect! [& [fname]]
   (load-config! (or fname "config.dat"))
   (make-at-pool!)
@@ -480,7 +485,8 @@ Stack: %s
                  (:double-jeopardy
                   (mongo/fetch-by-id :state nil
                                      :only [:double-jeopardy]))))
-  (connect-jabber! (:jabber @config)))
+  (connect-jabber! (:jabber @config))
+  (run-webserver (:webserver @config)))
 
 (defn -main []
   (connect!)
