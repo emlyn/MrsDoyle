@@ -16,6 +16,10 @@
   (json-response (map (fn [[dr cs]] [(get-salutation dr) cs])
                       (stats/get-drinker-cups))))
 
+(defn maker-rounds []
+  (json-response (map (fn [[dr cs]] [(get-salutation dr) cs])
+                      (stats/get-maker-rounds))))
+
 (defn drinker-luck []
   (json-response (map (fn [[dr lk]] [(get-salutation dr) lk])
                       (stats/get-drinker-luck))))
@@ -23,10 +27,15 @@
 (defn recent-drinkers []
   (json-response (stats/get-recent-drinkers)))
 
+(defn round-sizes []
+  (json-response (stats/get-round-sizes)))
+
 (defroutes app-routes
   (GET "/" [] (resp/redirect "index.html"))
   (GET "/drinker-cups" [] (drinker-cups))
+  (GET "/maker-rounds" [] (maker-rounds))
   (GET "/drinker-luck" [] (drinker-luck))
   (GET "/recent-drinkers" [] (recent-drinkers))
+  (GET "/round-sizes" [] (round-sizes))
   (route/resources "/")
   (route/not-found "Not Found"))

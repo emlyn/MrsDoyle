@@ -4,12 +4,12 @@ h3 {
     font-weight: bold;
 }
 
-#all_time_drunk_div, #luckiest_so_far_div {
+#all_time_drunk_div, #all_time_rounds_div, #luckiest_so_far_div {
     width: 1000px;
     height: 500px;
 }
 
-#last_week_drunk_div {
+#round_sizes_div, #last_week_drunk_div {
     width: 1000px;
     height: 400px;
 }

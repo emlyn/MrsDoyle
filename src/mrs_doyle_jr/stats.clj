@@ -40,6 +40,15 @@
              (map (fn [d] [(:_id d) (or (:drunk d) 0)])
                   r))))
 
+(defn get-maker-rounds []
+  (let [r (mongo/aggregate :rounds
+                           {:$group {:_id :$maker
+                                     :n {:$sum 1}}}
+                           {:$sort (array-map :n -1
+                                              :_id 1)})]
+    (map (fn [d] [(:_id d) (:n d)])
+         (:result r))))
+
 (defn get-drinker-luck [& {:keys [only limit]}]
   (let [match (or ({:lucky {:$gt 1.0}
                     :unlucky {:$lt 1.0}} only)
@@ -70,4 +79,12 @@
     (map (fn [d] [(map #(% (:_id d)) [:y :m :d])
                  (:rounds d)
                  (:cups d)])
+         (:result r))))
+
+(defn get-round-sizes []
+  (let [r (mongo/aggregate :rounds
+                           {:$group {:_id :$cups
+                                     :n {:$sum 1}}}
+                           {:$sort {:_id 1}})]
+    (map (fn [d] [(:_id d) (:n d)])
          (:result r))))

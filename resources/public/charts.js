@@ -29,6 +29,29 @@ function drawCharts() {
 
     // ----------------------
 
+    var options = {title: 'Who has made tea most times via Mrs Doyle (all time)?',
+                   width: 1000,
+                   height: 500};
+
+    // Create the data table.
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Maker');
+    data.addColumn('number', 'Rounds made');
+
+    $.ajax({
+        url: "/maker-rounds",
+        dataType: "json",
+        async: false
+    }).done(function(json) {
+        data.addRows(json);
+    });
+
+    // Instantiate and draw this chart, passing in some options.
+    var all_time_rounds_chart = new google.visualization.PieChart(document.getElementById('all_time_rounds_div'));
+    all_time_rounds_chart.draw(data, options);
+
+    // ----------------------
+
     var options = {title: 'Who has been luckiest so far (and so is more likely to get picked next)?',
                    width: 1000,
                    height: 500,
@@ -62,6 +85,33 @@ function drawCharts() {
     // Instantiate and draw this chart, passing in some options.
     var luckiest_chart = new google.visualization.ComboChart(document.getElementById('luckiest_so_far_div'));
     luckiest_chart.draw(data, options);
+
+    // ----------------------
+
+    var options = {title: 'How many cups of tea have people had to make per round?',
+                   width: 1000,
+                   height: 400,
+                   hAxis: {viewWindow: {min: 1.5},
+                           gridlines: {}}};
+
+    // Create the data table.
+    data = new google.visualization.DataTable();
+    data.addColumn('number', 'Round size');
+    data.addColumn('number', 'Frequency');
+
+    $.ajax({
+        url: "/round-sizes",
+        dataType: "json",
+        async: false
+    }).done(function(json) {
+        data.addRows(json);
+        options.hAxis.viewWindow.max = json[json.length-1][0] + 0.5;
+        options.hAxis.gridlines.count = json.length;
+    });
+
+    // Instantiate and draw this chart, passing in some options.
+    var rounds_chart = new google.visualization.ColumnChart(document.getElementById('round_sizes_div'));
+    rounds_chart.draw(data, options);
 
     // --------------------
 
