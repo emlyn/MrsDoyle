@@ -1,7 +1,7 @@
 (ns mrs-doyle-jr.util
-  (:require [clj-time.core :refer :all]
-            [clj-time.format :refer :all]
-            [clj-time.coerce :refer :all]
+  (:require [clj-time.core :refer [days years ago]]
+            [clj-time.format :refer [formatters unparse]]
+            [clj-time.coerce :refer [from-date to-date]]
             [clojure.string :as s]))
 
 (defn week-ago []
