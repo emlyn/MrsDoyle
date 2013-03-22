@@ -37,25 +37,39 @@
 
         // ----------------------
 
-        var options = {'title':'Who has been luckiest so far (and so is more likely to get picked next)?',
-                       'width':1000,
-                       'height':500};
+        var options = {title: 'Who has been luckiest so far (and so is more likely to get picked next)?',
+                       width: 1000,
+                       height: 500,
+                       interpolateNulls: true,
+                       series: {
+                         0: {type: 'bars'},
+                         1: {type: 'line', visibleInLegend: false}
+                       },
+                       vAxis: {minValue: 0},
+                       hAxis: {viewWindow: {min: 1}}};
 
         // Create the data table.
         data = new google.visualization.DataTable();
         data.addColumn('string', 'Drinker');
         data.addColumn('number', 'Relative probability');
+        data.addColumn('number', 'Fixed height line');
 
         $.ajax({
           url: "/drinker-luck",
           dataType:"json",
           async: false
           }).done(function(json) {
+            for (var i in json) {
+              json[i].push(null)
+            }
+            json.unshift([null, null, 1]);
+            json.push([null, null, 1]);
+            options.hAxis.viewWindow.max = json.length - 1
             data.addRows(json);
         });
 
         // Instantiate and draw this chart, passing in some options.
-        var luckiest_chart = new google.visualization.ColumnChart(document.getElementById('luckiest_so_far_div'));
+        var luckiest_chart = new google.visualization.ComboChart(document.getElementById('luckiest_so_far_div'));
         luckiest_chart.draw(data, options);
 
         // --------------------
