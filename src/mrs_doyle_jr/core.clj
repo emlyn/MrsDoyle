@@ -116,7 +116,7 @@ Stack: %s
         [drunk made] (map #(int (+ 0.5 %)) stats)
         rounds (mongo/fetch-count :rounds
                                   :where {:maker addr})]
-    (format "You have drunk %d cup%s of tea, and made %d in %d round%s."
+    (format "You have drunk %d cup%s of tea, and made %d in %d round%s. For more lovely numbers, have a look at http://whitbury:8080/"
             drunk (if (= 1 drunk) "" "s")
             made
             rounds (if (= 1 rounds) "" "s"))))
