@@ -122,22 +122,14 @@ Stack: %s
             rounds (if (= 1 rounds) "" "s"))))
 
 (defn build-ratio-reply [best?]
-  (let [result (mongo/aggregate :people
-                                {:$match {:made  {:$gt 0}
-                                          :drunk {:$gt 0}}}
-                                {:$project {:_id :$_id
-                                            :drunk :$drunk
-                                            :ratio {:$divide [:$drunk :$made]}}}
-                                {:$match {:ratio {(if best? :$gt :$lt) 1.0}}}
-                                {:$sort (array-map :ratio (if best? -1 1)
-                                                   :drunk -1)}
-                                {:$limit 3})]
+  (let [results (stats/get-drinker-luck :only (if best? :lucky :unlucky)
+                                        :limit 4)]
     (reduce str
             (if best? (conv/luckiest) (conv/unluckiest))
-            (map #(format "\n * %s (%.2f)"
-                          (get-salutation (:_id %))
-                          (double (:ratio %)))
-                 (:result result)))))
+            (map (fn [[id r]] (format "\n * %s (%.2f)"
+                                     (get-salutation id)
+                                     (double r)))
+                 results))))
 
 (defn append-actions [state & actions]
   (apply update-in state [:actions] conj actions))

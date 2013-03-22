@@ -65,22 +65,33 @@ function drawCharts() {
 
     // --------------------
 
-    var options = {'width':1000,
-                   'height':400};
+    var options = {width: 1000,
+                   height: 400,
+                   fill: 50,
+                   min: 0};
 
     // Create the data table.
     var data = new google.visualization.DataTable();
     data.addColumn('date', 'Date');
-    data.addColumn('number', 'Drinkers');
+    data.addColumn('number', 'Rounds');
+    data.addColumn('number', 'Cups');
 
     $.ajax({
         url: "/recent-drinkers",
         dataType: "json",
         async: false
     }).done(function(json) {
-        data.addRows(json.map(function(v) {
-            return [new Date(v[0]), v[1]]
-        }));
+        var points = []
+        for (i in json) {
+            var d = json[i][0];
+            var v = json[i].slice(1);
+            var z = v.map(function(x){return 0;});
+            points.push([new Date(d[0],d[1],d[2],0,0,0,0)].concat(z));
+            points.push([new Date(d[0],d[1],d[2],0,0,0,0)].concat(v));
+            points.push([new Date(d[0],d[1],d[2],23,59,59,999)].concat(v));
+            points.push([new Date(d[0],d[1],d[2],23,59,59,999)].concat(z));
+        }
+        data.addRows(points);
     });
 
     // Instantiate and draw this chart, passing in some options.

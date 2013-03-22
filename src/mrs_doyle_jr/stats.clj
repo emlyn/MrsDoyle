@@ -40,19 +40,34 @@
              (map (fn [d] [(:_id d) (or (:drunk d) 0)])
                   r))))
 
-(defn get-drinker-luck []
-  (let [r (mongo/fetch :people :only [:_id :drunk :made])]
-    (sort-by (fn [[id lk]] [(- lk) id])
-             (map (fn [d] [(:_id d) (/ (:drunk d) (:made d))])
-                  (filter #(not (zero? (or (:made %) 0)))
-                          r)))))
-
-(defn- get-cup-counts [date]
-  (mongo/fetch-count :cups
-                     :where {:date date}))
+(defn get-drinker-luck [& {:keys [only limit]}]
+  (let [match (or ({:lucky {:$gt 1.0}
+                    :unlucky {:$lt 1.0}} only)
+                  {:$gt 0.0})
+        r (mongo/aggregate :people
+                           {:$match {:made  {:$gt 0}
+                                     :drunk {:$gt 0}}}
+                           {:$project {:_id :$_id
+                                       :drunk :$drunk
+                                       :ratio {:$divide [:$drunk :$made]}}}
+                           {:$match {:ratio match}}
+                           {:$sort (array-map :ratio (if (= only :unlucky) 1 -1)
+                                              :drunk -1)}
+                           {:$limit (or limit 1000000)})]
+    (map (fn [d] [(:_id d) (:ratio d)])
+         (:result r))))
 
 (defn get-recent-drinkers []
-  (let [r (mongo/distinct-values :cups "date"
+  (let [r (mongo/aggregate :rounds
+                           {:$match {:date {:$gt (year-ago)}}}
+                           {:$group {:_id {:y {:$year :$date}
+                                           :m {:$month :$date}
+                                           :d {:$dayOfMonth :$date}}
+                                     :cups {:$sum :$cups}
+                                     :rounds {:$sum 1}}})
+        q (mongo/distinct-values :cups "date"
                                  :where {:date {:$gt (year-ago)}})]
-    (map (fn [d] [(to-rfc-date d) (get-cup-counts d)])
-         r)))
+    (map (fn [d] [(map #(% (:_id d)) [:y :m :d])
+                 (:rounds d)
+                 (:cups d)])
+         (:result r))))
