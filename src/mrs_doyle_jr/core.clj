@@ -3,6 +3,7 @@
    [mrs-doyle-jr.conversation :as conv]
    [mrs-doyle-jr.actions :as action]
    [mrs-doyle-jr.stats :as stats]
+   [mrs-doyle-jr.util :refer :all]
    [mrs-doyle-jr.web :as web]
    [quit-yo-jibber :as jabber]
    [quit-yo-jibber.presence :as presence]
@@ -58,15 +59,6 @@ Stack: %s
                                :askme true})
        (catch com.mongodb.MongoException$DuplicateKey e
          (mongo/fetch-by-id :people addr))))
-
-(defn get-salutation [addr]
-  (s/replace
-    (s/replace
-      (first (s/split addr #"@"))
-      "."
-      " ")
-    #"^[a-z]| [a-z]"
-    #(.toUpperCase %)))
 
 (defn build-well-volunteered-message [maker prefs]
   (reduce str

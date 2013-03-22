@@ -1,6 +1,7 @@
 (ns mrs-doyle-jr.web
   (:require
    [mrs-doyle-jr.stats :as stats]
+   [mrs-doyle-jr.util :refer :all]
    [compojure.core :refer :all]
    [compojure.route :as route]
    [ring.util.response :as resp]
@@ -12,10 +13,12 @@
       :body (json/json-str data)})
 
 (defn drinker-cups []
-  (json-response (stats/get-drinker-cups)))
+  (json-response (map (fn [[dr cs]] [(get-salutation dr) cs])
+                      (stats/get-drinker-cups))))
 
 (defn drinker-luck []
-  (json-response (stats/get-drinker-luck)))
+  (json-response (map (fn [[dr lk]] [(get-salutation dr) lk])
+                      (stats/get-drinker-luck))))
 
 (defn recent-drinkers []
   (json-response (stats/get-recent-drinkers)))
