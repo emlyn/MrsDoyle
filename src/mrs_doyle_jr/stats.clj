@@ -35,10 +35,12 @@
                r))))
 
 (defn get-drinker-cups []
-  (let [r (mongo/fetch :people :only [:_id :drunk])]
-    (sort-by (fn [[id dr]] [(- dr) id])
-             (map (fn [d] [(:_id d) (or (:drunk d) 0)])
-                  r))))
+  (let [r (mongo/fetch :people
+                       :only [:_id :drunk]
+                       :sort (array-map :drunk -1
+                                        :_id 1))]
+    (map (fn [d] [(:_id d) (or (:drunk d) 0)])
+         r)))
 
 (defn get-maker-rounds []
   (let [r (mongo/aggregate :rounds
