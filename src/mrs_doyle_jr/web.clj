@@ -17,13 +17,13 @@
 (defn drinker-luck []
   (json-response (stats/get-drinker-luck)))
 
-(defn week-drinkers []
-  (json-response (stats/get-week-drinkers)))
+(defn recent-drinkers []
+  (json-response (stats/get-recent-drinkers)))
 
 (defroutes app-routes
   (GET "/" [] (resp/redirect "index.html"))
   (GET "/drinker-cups" [] (drinker-cups))
   (GET "/drinker-luck" [] (drinker-luck))
-  (GET "/week-drinkers" [] (week-drinkers))
+  (GET "/recent-drinkers" [] (recent-drinkers))
   (route/resources "/")
   (route/not-found "Not Found"))
