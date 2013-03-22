@@ -8,7 +8,10 @@
                  [quit-yo-jibber "0.4.2"]
                  [overtone/at-at "1.1.1"]
                  [congomongo "0.4.0"]
-                 [jivesoftware/smack "3.1.0"]]
+                 [jivesoftware/smack "3.1.0"]
+                 [compojure "1.1.5"]
+                 [ring/ring-jetty-adapter "1.1.8"]
+                 [clj-time "0.4.5"]]
   :profiles {:dev
              {:dependencies [[midje "1.5-alpha10"]]
               :plugins      [[lein-midje "3.0-alpha4"]]}}
