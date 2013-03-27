@@ -4,6 +4,48 @@ google.load('visualization', '1.0', {'packages':['corechart', 'annotatedtimeline
 // Set a callback to run when the Google Visualization API is loaded.
 google.setOnLoadCallback(drawCharts);
 
+function startOfDay(date) {
+    var d = new Date(date);
+    d.setHours(0);
+    d.setMinutes(0);
+    d.setSeconds(0);
+    d.setMilliseconds(0);
+    return d;
+}
+
+function endOfDay(date) {
+    var d = new Date(date);
+    d.setHours(23);
+    d.setMinutes(59);
+    d.setSeconds(59);
+    d.setMilliseconds(999);
+    return d;
+}
+
+// Add data points to an array to display a barchart in an annotatedTimeline plot.
+function addPoints(points, date, vals) {
+    var zeros = vals.map(function (v) {return 0;});
+    if (points.length > 0) {
+        var dt = startOfDay(points[points.length - 1][0]);
+        dt.setDate(dt.getDate() + 1);
+        while (dt < date) {
+            points.push([startOfDay(dt)].concat(zeros));
+            points.push([endOfDay(dt)].concat(zeros));
+            dt.setDate(dt.getDate() + 1);
+        }
+    }
+    points.push([date].concat(zeros));
+    var dt2 = endOfDay(date);
+    for (i in vals) {
+        if (vals[i] != 0) {
+            points.push([date].concat(vals));
+            points.push([dt2].concat(vals));
+            break;
+        }
+    }
+    points.push([dt2].concat(zeros));
+}
+
 // Callback that creates and populates our charts
 function drawCharts() {
     var options = {title: 'Who has drunk the most tea via Mrs Doyle (all time)?',
@@ -132,15 +174,13 @@ function drawCharts() {
         dataType: "json",
         async: false
     }).done(function(json) {
+        var lastDate = null;
         var points = []
         for (i in json) {
             var d = json[i][0];
-            var v = json[i].slice(1);
-            var z = v.map(function(x){return 0;});
-            points.push([new Date(d[0],d[1]-1,d[2],0,0,0,0)].concat(z));
-            points.push([new Date(d[0],d[1]-1,d[2],0,0,0,0)].concat(v));
-            points.push([new Date(d[0],d[1]-1,d[2],23,59,59,999)].concat(v));
-            points.push([new Date(d[0],d[1]-1,d[2],23,59,59,999)].concat(z));
+            var date = new Date(d[0], d[1]-1, d[2], 0, 0, 0, 0);
+            var vals = json[i].slice(1);
+            addPoints(points, date, vals);
         }
         data.addRows(points);
     });

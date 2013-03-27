@@ -75,7 +75,10 @@
                                            :m {:$month :$date}
                                            :d {:$dayOfMonth :$date}}
                                      :cups {:$sum :$cups}
-                                     :rounds {:$sum 1}}})
+                                     :rounds {:$sum 1}}}
+                           {:$sort (array-map :_id.y 1
+                                              :_id.m 1
+                                              :_id.d 1)})
         q (mongo/distinct-values :cups "date"
                                  :where {:date {:$gt (year-ago)}})]
     (map (fn [d] [(map #(% (:_id d)) [:y :m :d])
