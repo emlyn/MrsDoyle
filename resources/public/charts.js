@@ -136,10 +136,10 @@ function drawCharts() {
             var d = json[i][0];
             var v = json[i].slice(1);
             var z = v.map(function(x){return 0;});
-            points.push([new Date(d[0],d[1],d[2],0,0,0,0)].concat(z));
-            points.push([new Date(d[0],d[1],d[2],0,0,0,0)].concat(v));
-            points.push([new Date(d[0],d[1],d[2],23,59,59,999)].concat(v));
-            points.push([new Date(d[0],d[1],d[2],23,59,59,999)].concat(z));
+            points.push([new Date(d[0],d[1]-1,d[2],0,0,0,0)].concat(z));
+            points.push([new Date(d[0],d[1]-1,d[2],0,0,0,0)].concat(v));
+            points.push([new Date(d[0],d[1]-1,d[2],23,59,59,999)].concat(v));
+            points.push([new Date(d[0],d[1]-1,d[2],23,59,59,999)].concat(z));
         }
         data.addRows(points);
     });
