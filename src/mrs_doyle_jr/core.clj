@@ -391,31 +391,31 @@ Stack: %s
                   (action/unrecognised-text (:_id person) text)))
 
 (defn handle-message [conn msg]
-  (when-let [text (:body msg)]
-    (let [addr (:from msg)
-          person (get-person! addr)]
-      (println (format "Received (%s): %s" addr text))
-      (send state append-actions
-            (action/update-person addr :askme true))
-      (send state in-round person)
-      (send state #(some (fn [f] (f % person text))
-                         [message-dbg
-                          message-rude
-                          message-go-away
-                          message-setting-prefs
-                          message-gordon
-                          message-question-who
-                          message-question-what
-                          message-drinker
-                          message-countdown
-                          message-add-person
-                          message-tea
-                          message-hello
-                          message-help
-                          message-yes
-                          message-huh]))
-      (send state process-actions! conn)
-      nil)))
+  (let [text (:body msg)
+        addr (:from msg)
+        person (get-person! addr)]
+    (println (format "Received (%s): %s" addr text))
+    (send state append-actions
+          (action/update-person addr :askme true))
+    (send state in-round person)
+    (send state #(some (fn [f] (f % person text))
+                       [message-dbg
+                        message-rude
+                        message-go-away
+                        message-setting-prefs
+                        message-gordon
+                        message-question-who
+                        message-question-what
+                        message-drinker
+                        message-countdown
+                        message-add-person
+                        message-tea
+                        message-hello
+                        message-help
+                        message-yes
+                        message-huh]))
+    (send state process-actions! conn)
+    nil))
 
 (defn presence-status [state status person]
   (let [available (and (:askme person)
