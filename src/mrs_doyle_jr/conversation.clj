@@ -63,7 +63,7 @@
   (one-of "Well hello dear, my name is Mrs Doyle Jr. As I am sure you know by the absence of tea recently, old Mrs Doyle had one of her turns had to retire.\nBut I will do my best to take over her duties, so if you ever want tea, just ask me and I'll see what I can do! Of course if you're busy and don't want me bugging you, just say so and I'll back off.\nIf you need any help, just ask."))
 
 (def help
-  (one-of "I'm here to help you with all your tea-related needs:\n
+  (one-of "I'm here to help you with all your tea-related needs:
 * If you would like some tea, just ask me and I'll see who else is thirsty.
 * If you don't want me bothering you, just tell me and I'll leave you alone until you speak to me again.
 * I can tell you who's drunk or made the most tea, who are the luckiest or unluckiest people, and what are some of your statistics (make sure you include a question mark at the end).
