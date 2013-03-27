@@ -381,6 +381,11 @@ Stack: %s
                       (action/send-message (:_id person) (conv/just-missed))
                       (action/unrecognised-text (:_id person) text)))))
 
+(defn message-help [state person text]
+  (when (conv/help? text)
+    (append-actions state
+                    (action/send-message (:_id person) (conv/help)))))
+
 (defn message-huh [state person text]
   (append-actions state
                   (action/unrecognised-text (:_id person) text)))
@@ -406,6 +411,7 @@ Stack: %s
                           message-add-person
                           message-tea
                           message-hello
+                          message-help
                           message-yes
                           message-huh]))
       (send state process-actions! conn)
