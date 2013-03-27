@@ -118,7 +118,8 @@ function drawCharts() {
     var options = {width: 1000,
                    height: 400,
                    fill: 50,
-                   min: 0};
+                   min: 0,
+                   dateFormat: 'EEE d MMM yy'};
 
     // Create the data table.
     var data = new google.visualization.DataTable();
