@@ -34,16 +34,6 @@
                         (or (:made d) 0)]])
                r))))
 
-(defn get-user-last-made [names]
-  (let [r (mongo/aggregate :cups
-                           {:$match {:drinker {:$in names}}}
-                           {:$sort {:date 1}}
-                           {:$group {:_id :$drinker
-                                     :made {:$last :$made}}})]
-    (into {}
-          (map (fn [d] [(:_id d) (:made d)])
-               (:result r)))))
-
 (defn get-drinker-cups []
   (let [r (mongo/fetch :people
                        :only [:_id :drunk]
