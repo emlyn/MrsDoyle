@@ -166,23 +166,23 @@ Stack: %s
               fairness)))
 
 (defn select-tea-maker [drinkers]
-  (when (> (count drinkers) 1)
-    (let [stats (stats/get-user-stats drinkers)
-          weights (map (comp (partial weight
-                                      (:fairness-factor @config 1.0))
-                             stats)
-                       drinkers)
-          maker (select-by-weight drinkers weights)]
-      maker)))
+  (let [stats (stats/get-user-stats drinkers)
+        weights (map (comp (partial weight
+                                    (:fairness-factor @config 1.0))
+                           stats)
+                     drinkers)
+        maker (select-by-weight drinkers weights)]
+    maker))
 
 (defn process-tea-round [state]
   (let [; Convert set to vector, shuffle to protect against any bias in selection.
         drinkers (shuffle (:drinkers state))
         lastround (stats/get-user-last-made drinkers)
         candidates (filter (comp not zero? lastround) drinkers)
-        maker (select-tea-maker (if (empty? candidates)
-                                  drinkers
-                                  candidates))
+        maker (when (> (count drinkers) 1)
+                (select-tea-maker (if (empty? candidates)
+                                    drinkers
+                                    candidates)))
         prefs (mongo/fetch-by-ids :people drinkers
                                   :only [:_id :teaprefs])
         prefs (reduce #(assoc % (:_id %2) (:teaprefs %2))
