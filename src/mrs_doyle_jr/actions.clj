@@ -26,12 +26,12 @@
                         {:_id addr}
                         {:$set {key newval}})))
 
-(defn log-stats [maker drinkers]
+(defn log-stats [maker drinkers confname]
   (let [now (java.util.Date.)]
     (fn [_]
       (stats/log-round! now maker drinkers)
       (mongo/update! :state
-                     {:_id nil}
+                     {:_id confname}
                      {:$set {:double-jeopardy maker}}))))
 
 (defn unrecognised-text [addr text]

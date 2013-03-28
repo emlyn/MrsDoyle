@@ -162,11 +162,10 @@ Stack: %s
               (map #(when (>= % r) %2)
                    cweight options))))))
 
-(defn weight [min-made fairness stats]
+(defn weight [fairness stats]
   (let [[drunk made] (or stats [0 0])]
     (Math/pow (/ drunk
-                 (max made
-                      min-made))
+                 (max 1 made))
               fairness)))
 
 (defn select-tea-maker [dj drinkers]
@@ -174,7 +173,6 @@ Stack: %s
     (let [potential (filter (partial not= dj) drinkers)
           stats (stats/get-user-stats potential)
           weights (map (comp (partial weight
-                                      (:minimum-made @config 1)
                                       (:fairness-factor @config 1.0))
                              stats)
                        potential)
@@ -196,15 +194,16 @@ Stack: %s
         prefs (reduce #(assoc % (:_id %2) (:teaprefs %2))
                       {} temp)]
     (-> state
-        (append-actions (when maker (action/log-stats maker drinkers)))
+        (append-actions (when maker (action/log-stats maker drinkers
+                                                      (get-in @config [:jabber :username]))))
         (#(apply append-actions %
                  (tea-round-actions maker prefs)))
-        (assoc :double-jeopardy (or maker dj))
-        (assoc :tea-countdown false)
-        (assoc :drinkers #{})
-        (assoc :informed #{})
-        (assoc :setting-prefs #{})
-        (assoc :last-round (at/now)))))
+        (assoc :double-jeopardy (or maker dj)
+               :tea-countdown false
+               :drinkers #{}
+               :informed #{}
+               :setting-prefs #{}
+               :last-round (at/now)))))
 
 (defn handle-tea-round [conn]
   (send state process-tea-round)
@@ -473,7 +472,7 @@ Stack: %s
   (connect-mongo! (:mongo @config))
   (send state #(assoc % :double-jeopardy
                  (:double-jeopardy
-                  (mongo/fetch-by-id :state nil
+                  (mongo/fetch-by-id :state (get-in @config [:jabber :username])
                                      :only [:double-jeopardy]))))
   (connect-jabber! (:jabber @config))
   (run-webserver (:webserver @config)))
