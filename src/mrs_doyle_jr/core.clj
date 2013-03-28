@@ -35,7 +35,6 @@ Stack: %s
                     :drinkers #{}
                     :setting-prefs #{}
                     :tea-countdown false
-                    :double-jeopardy nil
                     :last-round 0
                     :actions []})
 
@@ -45,8 +44,6 @@ Stack: %s
                   :validator #(and (set? (:informed %))
                                    (set? (:drinkers %))
                                    (set? (:setting-prefs %))
-                                   (or (string? (:double-jeopardy %))
-                                       (nil?    (:double-jeopardy %)))
                                    (vector? (:actions %)))))
 
 (def config (atom nil))
@@ -162,44 +159,47 @@ Stack: %s
               (map #(when (>= % r) %2)
                    cweight options))))))
 
-(defn weight [min-made fairness stats]
+(defn weight [fairness stats]
   (let [[drunk made] (or stats [0 0])]
     (Math/pow (/ drunk
-                 (max made
-                      min-made))
+                 (max 1 made))
               fairness)))
 
-(defn select-tea-maker [dj drinkers]
+(defn select-tea-maker [drinkers]
   (when (> (count drinkers) 1)
-    (let [potential (filter (partial not= dj) drinkers)
-          stats (stats/get-user-stats potential)
+    (let [stats (stats/get-user-stats drinkers)
           weights (map (comp (partial weight
-                                      (:minimum-made @config 1)
                                       (:fairness-factor @config 1.0))
                              stats)
-                       potential)
-          maker (select-by-weight potential weights)]
-      (println (apply str "Tea round (" dj ")"
-                      (map #(format "\n %s %s (%s: %.3f)"
-                                    (if (= maker %1) ">" "-")
-                                    %1 (or %2 [0 0]) %3)
-                           potential (map stats potential) weights)))
+                       drinkers)
+          maker (select-by-weight drinkers weights)]
       maker)))
 
 (defn process-tea-round [state]
-  (let [dj (:double-jeopardy state)
-        ; Convert set to vector, shuffle to protect against any bias in selection.
+  (let [; Convert set to vector, shuffle to protect against any bias in selection.
         drinkers (shuffle (:drinkers state))
-        maker (select-tea-maker dj drinkers)
-        temp (mongo/fetch-by-ids :people drinkers
-                                 :only [:_id :teaprefs])
+        lastround (stats/get-user-last-made drinkers)
+        candidates (filter (comp not zero? lastround) drinkers)
+        maker (select-tea-maker (if (empty? candidates)
+                                  drinkers
+                                  candidates))
+        prefs (mongo/fetch-by-ids :people drinkers
+                                  :only [:_id :teaprefs])
         prefs (reduce #(assoc % (:_id %2) (:teaprefs %2))
-                      {} temp)]
+                      {} prefs)]
+    (println (apply str "Tea round"
+                    (map #(format "\n %s %s"
+                                  (if (= maker %) ">"
+                                      (if (or (empty? candidates)
+                                              ((set candidates) %))
+                                        "+"
+                                        "-"))
+                                  %)
+                         drinkers)))
     (-> state
         (append-actions (when maker (action/log-stats maker drinkers)))
         (#(apply append-actions %
                  (tea-round-actions maker prefs)))
-        (assoc :double-jeopardy (or maker dj))
         (assoc :tea-countdown false)
         (assoc :drinkers #{})
         (assoc :informed #{})
@@ -471,10 +471,6 @@ Stack: %s
   (load-config! (or fname "config.dat"))
   (make-at-pool!)
   (connect-mongo! (:mongo @config))
-  (send state #(assoc % :double-jeopardy
-                 (:double-jeopardy
-                  (mongo/fetch-by-id :state nil
-                                     :only [:double-jeopardy]))))
   (connect-jabber! (:jabber @config))
   (run-webserver (:webserver @config)))
 
