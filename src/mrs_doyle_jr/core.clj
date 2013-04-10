@@ -12,7 +12,8 @@
    [clojure.stacktrace :refer [print-stack-trace]]
    [clojure.pprint :refer [pprint]]
    [somnium.congomongo :as mongo]
-   [ring.adapter.jetty :refer [run-jetty]]))
+   [ring.adapter.jetty :refer [run-jetty]]
+   [taoensso.timbre :refer [debug info warn error fatal spy]]))
 
 (defn ppstr [o]
   (with-out-str (pprint o)))
@@ -23,13 +24,9 @@
                             :exception (ppstr e)
                             :state (ppstr state)
                             :stacktrace trace})
-    (.println System/err
-              (format "{{{{{{{{{{{{{{{{{{{{
-Error: %s
-State: %s
-Stack: %s
-}}}}}}}}}}}}}}}}}}}}"
-                      (ppstr e) (ppstr state) trace))))
+    (error
+     (format "Error: %s\nState: %s\nStack: %s"
+             (ppstr e) (ppstr state) trace))))
 
 (def default-state {:informed #{}
                     :drinkers #{}
@@ -177,11 +174,11 @@ Stack: %s
                              stats)
                        potential)
           maker (select-by-weight potential weights)]
-      (println (apply str "Tea round (" dj ")"
-                      (map #(format "\n %s %s (%s: %.3f)"
-                                    (if (= maker %1) ">" "-")
-                                    %1 (or %2 [0 0]) %3)
-                           potential (map stats potential) weights)))
+      (info (apply str "Tea round (" dj ")"
+                   (map #(format "\n %s %s (%s: %.3f)"
+                                 (if (= maker %1) ">" "-")
+                                 %1 (or %2 [0 0]) %3)
+                        potential (map stats potential) weights)))
       maker)))
 
 (defn process-tea-round [state]
@@ -390,31 +387,31 @@ Stack: %s
                   (action/unrecognised-text (:_id person) text)))
 
 (defn handle-message [conn msg]
-  (let [text (:body msg)
-        addr (:from msg)
-        person (get-person! addr)]
-    (println (format "Received (%s): %s" addr text))
-    (send state append-actions
-          (action/update-person addr :askme true))
-    (send state in-round person)
-    (send state #(some (fn [f] (f % person text))
-                       [message-dbg
-                        message-rude
-                        message-go-away
-                        message-setting-prefs
-                        message-gordon
-                        message-question-who
-                        message-question-what
-                        message-drinker
-                        message-countdown
-                        message-add-person
-                        message-tea
-                        message-hello
-                        message-help
-                        message-yes
-                        message-huh]))
-    (send state process-actions! conn)
-    nil))
+  (when-let [text (:body msg)]
+    (let [addr (:from msg)
+          person (get-person! addr)]
+      (info (format "Received (%s): %s" addr text))
+      (send state append-actions
+            (action/update-person addr :askme true))
+      (send state in-round person)
+      (send state #(some (fn [f] (f % person text))
+                         [message-dbg
+                          message-rude
+                          message-go-away
+                          message-setting-prefs
+                          message-gordon
+                          message-question-who
+                          message-question-what
+                          message-drinker
+                          message-countdown
+                          message-add-person
+                          message-tea
+                          message-hello
+                          message-help
+                          message-yes
+                          message-huh]))
+      (send state process-actions! conn)
+      nil)))
 
 (defn presence-status [state status person]
   (let [available (and (:askme person)
@@ -435,11 +432,11 @@ Stack: %s
   (let [addr (:jid presence)
         person (get-person! addr)
         status (or (:status presence) "")]
-    (println (format "Presence %s %s (%s): '%s'"
-                     (if (:online? presence) " online" "offline")
-                     (if (:away? presence) "away" "here")
-                     addr
-                     status))
+    (info (format "Presence %s %s (%s): '%s'"
+                  (if (:online? presence) " online" "offline")
+                  (if (:away? presence) "away" "here")
+                  addr
+                  status))
     (send state presence-status status person)
     (when (and (:online? presence)
                (not (:away? presence)))
@@ -479,7 +476,7 @@ Stack: %s
 
 (defn -main []
   (connect!)
-  (println "Let's make some tea!")
+  (info "Let's make some tea!")
   (while (.isConnected @connection)
     (Thread/sleep 100))
-  (println "That's all folks!"))
+  (info "That's all folks!"))

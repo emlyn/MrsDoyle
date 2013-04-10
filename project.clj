@@ -11,7 +11,8 @@
                  [jivesoftware/smack "3.1.0"]
                  [compojure "1.1.5"]
                  [ring/ring-jetty-adapter "1.1.8"]
-                 [clj-time "0.4.5"]]
+                 [clj-time "0.4.5"]
+                 [com.taoensso/timbre "1.5.2"]]
   :profiles {:dev
              {:dependencies [[midje "1.5-alpha10"]]
               :plugins      [[lein-midje "3.0-alpha4"]]}}

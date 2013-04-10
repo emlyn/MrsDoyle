@@ -6,10 +6,11 @@
    [quit-yo-jibber :as jabber]
    [quit-yo-jibber.presence :as presence]
    [overtone.at-at :as at]
-   [somnium.congomongo :as mongo]))
+   [somnium.congomongo :as mongo]
+   [taoensso.timbre :refer [debug info warn error fatal spy]]))
 
 (defn- send-message! [conn to msg]
-  (println (format "Send (%s): %s" to msg))
+  (info (format "Send (%s): %s" to msg))
   (jabber/send-message conn to msg))
 
 (defn send-message [addr text]
