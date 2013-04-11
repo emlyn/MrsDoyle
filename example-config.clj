@@ -7,4 +7,10 @@
           :password "****"}
  :mongo  {:db "mrs-doyle"
           :args {:host "127.0.0.1"
-                 :port 27017}}}
+                 :port 27017}}
+ :irc {:host "irc.example.org"
+       :port 6667
+       :pass "seekrit"
+       :nick "mrsdoyle"
+       :name "Mrs Doyle"
+       :chan "#tea"}}

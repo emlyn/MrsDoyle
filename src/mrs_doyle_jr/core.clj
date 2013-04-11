@@ -5,6 +5,7 @@
    [mrs-doyle-jr.stats :as stats]
    [mrs-doyle-jr.util :refer :all]
    [mrs-doyle-jr.web :as web]
+   [mrs-doyle-jr.irc :as irc]
    [quit-yo-jibber :as jabber]
    [quit-yo-jibber.presence :as presence]
    [overtone.at-at :as at]
@@ -13,7 +14,7 @@
    [clojure.pprint :refer [pprint]]
    [somnium.congomongo :as mongo]
    [ring.adapter.jetty :refer [run-jetty]]
-   [taoensso.timbre :refer [debug info warn error fatal spy]]))
+   [taoensso.timbre :as timbre :refer [info error]]))
 
 (defn ppstr [o]
   (with-out-str (pprint o)))
@@ -447,6 +448,18 @@
 (defn load-config! [fname]
   (swap! config (constantly (read-string (slurp fname)))))
 
+(defn prefix-fn [{:keys [level timestamp hostname ns]}]
+  (str (.toUpperCase (name level))
+       " [" ns "]"))
+
+(defn enable-irc-logger []
+  (timbre/set-config! [:timestamp-pattern] "yyyy-MM-dd HH:mm:ss")
+  (when-let [irc (:irc @config)]
+    (timbre/set-config! [:appenders :irc-appender] irc/appender)
+    (timbre/set-config! [:shared-appender-config :irc] irc)
+    (timbre/set-config! [:appenders :standard-out :enabled?] false)
+    (timbre/set-config! [:prefix-fn] prefix-fn)))
+
 (defn make-at-pool! []
   (swap! at-pool (constantly (at/mk-pool))))
 
@@ -464,7 +477,8 @@
   (run-jetty web/app-routes conf))
 
 (defn connect! [& [fname]]
-  (load-config! (or fname "config.dat"))
+  (load-config! (or fname "config.clj"))
+  (enable-irc-logger)
   (make-at-pool!)
   (connect-mongo! (:mongo @config))
   (send state #(assoc % :double-jeopardy
