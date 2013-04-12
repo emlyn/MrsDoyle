@@ -477,7 +477,7 @@
   (run-jetty web/app-routes conf))
 
 (defn connect! [& [fname]]
-  (load-config! (or fname "config.clj"))
+  (load-config! (or fname "config.dat"))
   (enable-irc-logger)
   (make-at-pool!)
   (connect-mongo! (:mongo @config))
