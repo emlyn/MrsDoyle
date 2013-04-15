@@ -24,7 +24,11 @@
 (defn appender-fn [{:keys [ap-config level prefix message more] :as args}]
   (let [conf (:irc ap-config)
         conn (ensure-conn conf)]
-    (ircb/message conn (:chan conf) prefix message)))
+    (let [lines (s/split message #"\n")
+          pref (first (s/split prefix #" "))]
+      (ircb/message conn (:chan conf) pref (first lines))
+      (doseq [line (rest lines)]
+        (ircb/message conn (:chan conf) ">" line)))))
 
 (def appender {:doc (str "Sends messages to an IRC channel."
                          "Needs :irc config map in :shared-appender-config"
