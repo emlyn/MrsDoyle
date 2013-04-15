@@ -27,10 +27,10 @@
                         {:_id addr}
                         {:$set {key newval}})))
 
-(defn log-stats [maker drinkers confname]
+(defn log-stats [initiator maker drinkers confname]
   (let [now (java.util.Date.)]
     (fn [_]
-      (stats/log-round! now maker drinkers)
+      (stats/log-round! now initiator maker drinkers)
       (mongo/update! :state
                      {:_id confname}
                      {:$set {:double-jeopardy maker}}))))

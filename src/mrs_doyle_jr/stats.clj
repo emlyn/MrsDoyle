@@ -3,24 +3,30 @@
    [mrs-doyle-jr.util :refer :all]
    [somnium.congomongo :as mongo]))
 
-(defn- stat-drinker! [round-id when name cups]
+(defn- stat-drinker! [round-id when name initiator? cups]
+  (println "stat drinker" name initiator? cups)
   (mongo/update! :people {:_id name}
-                         {:$inc {:made cups :drunk 1}})
+                 {:$inc {:made cups
+                         :drunk 1
+                         :initiated (if initiator? 1 0)}})
   (mongo/insert! :cups {:round-id round-id
                         :date when
                         :drinker name
+                        :initiated initiator?
                         :made cups}))
 
-(defn- stat-round! [when maker cups]
+(defn- stat-round! [when initiator maker cups]
   (mongo/insert! :rounds {:date when
+                          :initiator initiator
                           :maker maker
                           :cups cups}))
 
-(defn log-round! [when maker drinkers]
+(defn log-round! [when initiator maker drinkers]
   (let [cups (count drinkers)
-        round-id (:_id (stat-round! when maker cups))]
+        round-id (:_id (stat-round! when initiator maker cups))]
     (doseq [drinker drinkers]
       (stat-drinker! round-id when drinker
+                     (= drinker initiator)
                      (if (= drinker maker)
                        cups
                        0)))))

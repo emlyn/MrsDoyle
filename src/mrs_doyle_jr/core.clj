@@ -29,7 +29,8 @@
      (format "Error: %s\nState: %s\nStack: %s"
              (ppstr e) (ppstr state) trace))))
 
-(def default-state {:informed #{}
+(def default-state {:initiator nil
+                    :informed #{}
                     :drinkers #{}
                     :setting-prefs #{}
                     :tea-countdown false
@@ -43,6 +44,8 @@
                   :validator #(and (set? (:informed %))
                                    (set? (:drinkers %))
                                    (set? (:setting-prefs %))
+                                   (or (string? (:initiator %))
+                                       (nil?    (:initiator %)))
                                    (or (string? (:double-jeopardy %))
                                        (nil?    (:double-jeopardy %)))
                                    (vector? (:actions %)))))
@@ -192,11 +195,12 @@
         prefs (reduce #(assoc % (:_id %2) (:teaprefs %2))
                       {} temp)]
     (-> state
-        (append-actions (when maker (action/log-stats maker drinkers
+        (append-actions (when maker (action/log-stats (:initiator state)  maker drinkers
                                                       (get-in @config [:jabber :username]))))
         (#(apply append-actions %
                  (tea-round-actions maker prefs)))
-        (assoc :double-jeopardy (or maker dj)
+        (assoc :initiator nil
+               :double-jeopardy (or maker dj)
                :tea-countdown false
                :drinkers #{}
                :informed #{}
@@ -354,6 +358,7 @@
     (let [addr (:_id person)]
       (-> thestate
           (assoc :tea-countdown true)
+          (assoc :initiator addr)
           (update-in [:drinkers] conj addr)
           (update-in [:informed] conj addr)
           (append-actions
