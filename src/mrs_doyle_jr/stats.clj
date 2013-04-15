@@ -4,7 +4,6 @@
    [somnium.congomongo :as mongo]))
 
 (defn- stat-drinker! [round-id when name initiator? cups]
-  (println "stat drinker" name initiator? cups)
   (mongo/update! :people {:_id name}
                  {:$inc {:made cups
                          :drunk 1
