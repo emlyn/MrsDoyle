@@ -488,8 +488,8 @@
   (connect-jabber! (:jabber @config))
   (run-webserver (:webserver @config)))
 
-(defn -main []
-  (connect!)
+(defn -main [& [configfile]]
+  (connect! configfile)
   (info "Let's make some tea!")
   (while (.isConnected @connection)
     (Thread/sleep 100))
