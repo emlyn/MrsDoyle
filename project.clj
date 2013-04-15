@@ -3,11 +3,11 @@
   :url "https://github.com/emlyn/MrsDoyle"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.4.0"]
+  :dependencies [[org.clojure/clojure "1.5.1"]
                  [clj-base64 "0.0.2"]
                  [quit-yo-jibber "0.4.3"]
                  [overtone/at-at "1.1.1"]
-                 [congomongo "0.4.0"]
+                 [congomongo "0.4.1"]
                  [jivesoftware/smack "3.1.0"]
                  [compojure "1.1.5"]
                  [ring/ring-jetty-adapter "1.1.8"]
