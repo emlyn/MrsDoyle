@@ -3,28 +3,28 @@
    [mrs-doyle-jr.util :refer :all]
    [somnium.congomongo :as mongo]))
 
-(defn- stat-drinker! [round-id when name initiator? cups]
+(defn- stat-drinker! [round-id timestamp name initiator? cups]
   (mongo/update! :people {:_id name}
                  {:$inc {:made cups
                          :drunk 1
                          :initiated (if initiator? 1 0)}})
   (mongo/insert! :cups {:round-id round-id
-                        :date when
+                        :date timestamp
                         :drinker name
                         :initiated initiator?
                         :made cups}))
 
-(defn- stat-round! [when initiator maker cups]
-  (mongo/insert! :rounds {:date when
+(defn- stat-round! [timestamp initiator maker cups]
+  (mongo/insert! :rounds {:date timestamp
                           :initiator initiator
                           :maker maker
                           :cups cups}))
 
-(defn log-round! [when initiator maker drinkers]
+(defn log-round! [timestamp initiator maker drinkers]
   (let [cups (count drinkers)
-        round-id (:_id (stat-round! when initiator maker cups))]
+        round-id (:_id (stat-round! timestamp initiator maker cups))]
     (doseq [drinker drinkers]
-      (stat-drinker! round-id when drinker
+      (stat-drinker! round-id timestamp drinker
                      (= drinker initiator)
                      (if (= drinker maker)
                        cups
@@ -99,9 +99,10 @@
     (map (fn [d] [(:_id d) (:n d)])
          (:result r))))
 
-(defn get-cups-since [when people]
+(defn get-cups-drunk [since people]
+  ;; Only returns people who have drunk 1 or more cups.
   (let [r (mongo/aggregate :cups
-                           {:$match {:date {:$gt when}
+                           {:$match {:date {:$gt since}
                                      :drinker {:$in people}}}
                            {:$group {:_id :$drinker
                                      :cups {:$sum 1}}})]

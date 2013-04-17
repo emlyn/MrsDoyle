@@ -64,7 +64,7 @@
 (defn build-well-volunteered-message [maker prefs]
   (let [others (filter (partial not= maker) (keys prefs))
         had-today (map get-salutation
-                       (keys (stats/get-cups-since (this-morning) others)))]
+                       (keys (stats/get-cups-drunk (this-morning) others)))]
     (str
      (conv/well-volunteered)
      (apply str (map #(format "\n * %s: %s" (get-salutation %) (prefs %))
