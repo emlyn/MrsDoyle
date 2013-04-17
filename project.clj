@@ -11,7 +11,7 @@
                  [jivesoftware/smack "3.1.0"]
                  [compojure "1.1.5"]
                  [ring/ring-jetty-adapter "1.1.8"]
-                 [clj-time "0.4.5"]
+                 [clj-time "0.5.0"]
                  [com.taoensso/timbre "1.5.2"]
                  [emlyn/irclj "0.5.0-SNAPSHOT"]]
   :profiles {:dev
