@@ -37,7 +37,8 @@
 (def add-person? (respond-to "[A-Z0-9._%+-]+@[A-Z0-9.-]+[.][A-Z]{2,4}"))
 (def tea-prefs?  (respond-to "earl gr[ae]y" "mint" "milk" "sugar" "honey"
                              "lemon" "white" "black" "green" "roo?ibos" "chai"
-                             "ceylon" "camomile" "herb(al)? tea"))
+                             "ceylon" "camomile" "lapsang" "souchong"
+                             "english breakfast" "herb(al)? tea"))
 (def go-away?    (respond-to "go away" "busy" "from home" "not today" "not in"
                              "wfh" "shut up"))
 (def away?       (respond-to "wfh" "away" "out" "home" "not here" "holiday"
@@ -259,5 +260,5 @@
           "Maybe you should speak to Gordon about that."
           "I think Gordon might know something about that."
           "I'm not sure, maybe try Gordon?"
-          "Why, you do ask the strangest things! Why don't you go and pester Gordon?"
+          "Why, you _do_ ask the _strangest_ things! Why don't you go and pester Gordon?"
           "That's really not my cup of tea, have you asked Gordon?"))
