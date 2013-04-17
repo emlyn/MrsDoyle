@@ -246,6 +246,14 @@
   (one-of "These people seem to have been doing more than their fair share:"
           "I'll try to take it easy on these poor people:"))
 
+(def had-today-singular-arg
+  (one-of-arg "Check if %s already has a mug, this isn't their first cup today."
+              "%s has already had tea today, maybe they have a mug you can re-use."))
+
+(def had-today-plural-arg
+  (one-of-arg "Check if %s already have a mug, this isn't their first cup today."
+              "%s have already had tea today, maybe they have a mug you can re-use."))
+
 (def gordon
   (one-of "I don't know about that, why don't you ask Gordon?"
           "Maybe you should speak to Gordon about that."

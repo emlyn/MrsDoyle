@@ -98,3 +98,12 @@
                            {:$sort {:_id 1}})]
     (map (fn [d] [(:_id d) (:n d)])
          (:result r))))
+
+(defn get-cups-since [when people]
+  (let [r (mongo/aggregate :cups
+                           {:$match {:date {:$gt when}
+                                     :drinker {:$in people}}}
+                           {:$group {:_id :$drinker
+                                     :cups {:$sum 1}}})]
+    (reduce #(assoc % (:_id %2) (:cups %2))
+            {} (:result r))))

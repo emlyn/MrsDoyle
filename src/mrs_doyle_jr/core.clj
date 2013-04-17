@@ -62,10 +62,18 @@
          (mongo/fetch-by-id :people addr))))
 
 (defn build-well-volunteered-message [maker prefs]
-  (reduce str
-          (conv/well-volunteered)
-          (map #(format "\n * %s: %s" (get-salutation %) (prefs %))
-               (filter (partial not= maker) (keys prefs)))))
+  (let [others (filter (partial not= maker) (keys prefs))
+        had-today (map get-salutation
+                       (keys (stats/get-cups-since (this-morning) others)))]
+    (str
+     (conv/well-volunteered)
+     (apply str (map #(format "\n * %s: %s" (get-salutation %) (prefs %))
+                     others))
+     (when-not (empty? had-today)
+       (str "\n"
+            (if (= 1 (count had-today))
+              (conv/had-today-singular-arg (first had-today))
+              (conv/had-today-plural-arg (join-with-and had-today))))))))
 
 (defn build-available-reply [addr]
   (let [connected (jabber/available @connection)
