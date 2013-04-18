@@ -4,25 +4,24 @@ google.load('visualization', '1.0', {'packages':['corechart', 'annotatedtimeline
 // Set a callback to run when the Google Visualization API is loaded.
 google.setOnLoadCallback(drawCharts);
 
-function startOfDay(date) {
+function dateAt(date, h, m, s, ms) {
     var d = new Date(date);
-    d.setHours(0);
-    d.setMinutes(0);
-    d.setSeconds(0);
-    d.setMilliseconds(0);
+    d.setHours(h);
+    d.setMinutes(m);
+    d.setSeconds(s);
+    d.setMilliseconds(ms);
     return d;
+}
+
+function startOfDay(date) {
+    return dateAt(date, 0, 0, 0, 0);
 }
 
 function endOfDay(date) {
-    var d = new Date(date);
-    d.setHours(23);
-    d.setMinutes(59);
-    d.setSeconds(59);
-    d.setMilliseconds(999);
-    return d;
+    return dateAt(date, 23, 59, 59, 999);
 }
 
-// Add data points to an array to display a barchart in an annotatedTimeline plot.
+// Massage data to make annotatedTimeline plot into cityscape plot.
 function addPoints(points, date, vals) {
     var zeros = vals.map(function (v) {return 0;});
     if (points.length > 0) {
@@ -34,16 +33,9 @@ function addPoints(points, date, vals) {
             dt.setDate(dt.getDate() + 1);
         }
     }
-    points.push([date].concat(zeros));
-    var dt2 = endOfDay(date);
-    for (i in vals) {
-        if (vals[i] != 0) {
-            points.push([date].concat(vals));
-            points.push([dt2].concat(vals));
-            break;
-        }
-    }
-    points.push([dt2].concat(zeros));
+
+    points.push([date].concat(vals));
+    points.push([endOfDay(date)].concat(vals));
 }
 
 // Callback that creates and populates our charts
