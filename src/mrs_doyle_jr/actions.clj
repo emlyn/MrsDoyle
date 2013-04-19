@@ -7,7 +7,7 @@
    [quit-yo-jibber.presence :as presence]
    [overtone.at-at :as at]
    [somnium.congomongo :as mongo]
-   [taoensso.timbre :refer [debug info warn error fatal spy]]))
+   [taoensso.timbre :refer [info]]))
 
 (defn- send-message! [conn to msg]
   (info (format "Send (%s): %s" to msg))
@@ -38,6 +38,7 @@
 (defn unrecognised-text [addr text]
   (let [now (java.util.Date.)]
     (fn [conn]
+      (info (format "Unrecognised (%s): '%s'" addr text))
       (send-message! conn addr (conv/huh))
       (mongo/insert! :unrecognised {:date now
                                     :from addr

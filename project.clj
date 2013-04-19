@@ -12,8 +12,8 @@
                  [compojure "1.1.5"]
                  [ring/ring-jetty-adapter "1.1.8"]
                  [clj-time "0.5.0"]
-                 [com.taoensso/timbre "1.5.2"]
-                 [irclj "0.5.0-alpha2"]]
+                 [irclj "0.5.0-alpha2"]
+                 [emlyn/timbre "1.5.3"]]
   :profiles {:dev
              {:dependencies [[midje "1.5-alpha10"]]
               :plugins      [[lein-midje "3.0-alpha4"]]}}
