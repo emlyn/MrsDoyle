@@ -469,8 +469,10 @@
   (timbre/set-config! [:timestamp-pattern] "yyyy-MM-dd HH:mm:ss")
   (when-let [irc (:irc @config)]
     (timbre/set-config! [:shared-appender-config :irc]
-                        (assoc irc
-                          :prefix-fn #(second (s/split % #" "))))
+                        (assoc irc :prefix-fn
+                               #(first (filter (partial re-matches
+                                                        #"[A-Z]{4,6}")
+                                               (s/split % #" ")))))
     (timbre/set-config! [:appenders :irc-appender] irc-appender)
     (timbre/set-config! [:appenders :standard-out :min-level] :warn)))
 
