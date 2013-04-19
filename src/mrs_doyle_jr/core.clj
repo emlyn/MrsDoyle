@@ -461,10 +461,6 @@
 (defn load-config! [fname]
   (swap! config (constantly (read-string (slurp fname)))))
 
-(defn prefix-fn [{:keys [level timestamp hostname ns]}]
-  (str (.toUpperCase (name level))
-       " [" ns "]"))
-
 (defn enable-irc-logger []
   (timbre/set-config! [:timestamp-pattern] "yyyy-MM-dd HH:mm:ss")
   (when-let [irc (:irc @config)]
