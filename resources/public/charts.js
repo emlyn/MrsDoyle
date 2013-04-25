@@ -86,6 +86,29 @@ function drawCharts() {
 
     // ----------------------
 
+    var options = {title: 'Who has initiated the most tea rounds via Mrs Doyle (all time)?',
+                   width: 1000,
+                   height: 500};
+
+    // Create the data table.
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Initiator');
+    data.addColumn('number', 'Rounds initiated');
+
+    $.ajax({
+        url: "/initiator-rounds",
+        dataType: "json",
+        async: false
+    }).done(function(json) {
+        data.addRows(json);
+    });
+
+    // Instantiate and draw this chart, passing in some options.
+    var all_time_initiated_chart = new google.visualization.PieChart(document.getElementById('all_time_initiated_div'));
+    all_time_initiated_chart.draw(data, options);
+
+    // ----------------------
+
     var options = {title: 'Who has been luckiest so far (and so is more likely to get picked next)?',
                    width: 1000,
                    height: 500,
@@ -146,6 +169,56 @@ function drawCharts() {
     // Instantiate and draw this chart, passing in some options.
     var rounds_chart = new google.visualization.ColumnChart(document.getElementById('round_sizes_div'));
     rounds_chart.draw(data, options);
+
+    // ----------------------
+
+    var options = {title: 'How does the activity vary depending on day of week?',
+                   width: 1000,
+                   height: 400,
+                   series: [{color: 'red'},
+                            {color: 'red', visibleInLegend: false},
+                            {color: 'blue'},
+                            {color: 'blue', visibleInLegend: false}]};
+
+    // Create the data table.
+    data = new google.visualization.DataTable();
+    data.addColumn('string', 'Day');
+    data.addColumn('number', 'Cups');
+    data.addColumn({type: 'number', role: 'interval'});
+    data.addColumn({type: 'number', role: 'interval'});
+    data.addColumn('number', 'Max Cups');
+    data.addColumn({type: 'boolean', role: 'certainty'}); // for dashed lines
+    data.addColumn('number', 'Rounds');
+    data.addColumn({type: 'number', role: 'interval'});
+    data.addColumn({type: 'number', role: 'interval'});
+    data.addColumn('number', 'Max Cups');
+    data.addColumn({type: 'boolean', role: 'certainty'}); // for dashed lines
+
+    $.ajax({
+        url: "/weekly-stats",
+        dataType: "json",
+        async: false
+    }).done(function(json) {
+        data.addRows(json.map(function(d){
+            var c = d.cups;
+            var r = d.rounds;
+            return [d.day,
+                    c.mean,
+                    c.mean - c.std,
+                    c.mean + c.std,
+                    c.max,
+                    false,
+                    r.mean,
+                    r.mean - r.std,
+                    r.mean + r.std,
+                    r.max,
+                    false];
+        }));
+    });
+
+    // Instantiate and draw this chart, passing in some options.
+    var weekly_chart = new google.visualization.LineChart(document.getElementById('weekly_stats_div'));
+    weekly_chart.draw(data, options);
 
     // --------------------
 

@@ -56,6 +56,16 @@
     (map (fn [d] [(:_id d) (:n d)])
          (:result r))))
 
+(defn get-initiator-rounds []
+  (let [r (mongo/aggregate :rounds
+                           {:$match {:initiator {:$exists true}}}
+                           {:$group {:_id :$initiator
+                                     :n {:$sum 1}}}
+                           {:$sort (array-map :n -1
+                                              :_id 1)})]
+    (map (fn [d] [(:_id d) (:n d)])
+         (:result r))))
+
 (defn get-drinker-luck [& {:keys [only limit]}]
   (let [match (or ({:lucky {:$gt 1.0}
                     :unlucky {:$lt 1.0}} only)
@@ -75,7 +85,6 @@
 
 (defn get-recent-drinkers []
   (let [r (mongo/aggregate :rounds
-                           {:$match {:date {:$gt (year-ago)}}}
                            {:$group {:_id {:y {:$year :$date}
                                            :m {:$month :$date}
                                            :d {:$dayOfMonth :$date}}
@@ -83,9 +92,7 @@
                                      :rounds {:$sum 1}}}
                            {:$sort (array-map :_id.y 1
                                               :_id.m 1
-                                              :_id.d 1)})
-        q (mongo/distinct-values :cups "date"
-                                 :where {:date {:$gt (year-ago)}})]
+                                              :_id.d 1)})]
     (map (fn [d] [(map #(% (:_id d)) [:y :m :d])
                  (:rounds d)
                  (:cups d)])
@@ -98,6 +105,45 @@
                            {:$sort {:_id 1}})]
     (map (fn [d] [(:_id d) (:n d)])
          (:result r))))
+
+(defn get-weekly-stats []
+  (let [r (mongo/aggregate :rounds
+                           {:$group {:_id {:y {:$year :$date}
+                                           :m {:$month :$date}
+                                           :d {:$dayOfMonth :$date}
+                                           :w {:$dayOfWeek :$date}}
+                                     :rounds {:$sum 1}
+                                     :cups   {:$sum :$cups}}}
+                           {:$group {:_id    :$_id.w ;; 1:Sun - 7:Sat
+                                     :n     {:$sum 1}
+                                     :sumr  {:$sum :$rounds}
+                                     :sumr2 {:$sum {:$multiply [:$rounds :$rounds]}}
+                                     :minr  {:$min :$rounds}
+                                     :maxr  {:$max :$rounds}
+                                     :sumc  {:$sum :$cups}
+                                     :sumc2 {:$sum {:$multiply [:$cups :$cups]}}
+                                     :minc  {:$min :$cups}
+                                     :maxc  {:$max :$cups}}}
+                           {:$sort {:_id 1}})]
+    (let [data (into {} (map (fn [x] [(:_id x) x]) (:result r)))]
+      (map (fn [i] (let [d (data i {:minc 0 :maxc 0 :sumc 0 :sumc2 0
+                                   :minr 0 :maxr 0 :sumr 0 :sumr2 0 :n 1})
+                        n (:n d)
+                        meanc (/ (:sumc d) n)
+                        meanr (/ (:sumr d) n)
+                        days ["Sun" "Mon" "Tue" "Wed" "Thu" "Fri" "Sat"]]
+                    {:day (days (dec i))
+                     :cups {:min (:minc d)
+                            :max (:maxc d)
+                            :mean meanc
+                            :std (Math/sqrt (- (/ (:sumc2 d) n)
+                                               (* meanc meanc)))}
+                     :rounds {:min (:minr d)
+                              :max (:maxr d)
+                              :mean meanr
+                              :std (Math/sqrt (- (/ (:sumr2 d) n)
+                                                 (* meanr meanr)))}}))
+           [2 3 4 5 6 7 1]))))
 
 (defn get-cups-drunk [since people]
   ;; Only returns people who have drunk 1 or more cups.
