@@ -126,13 +126,13 @@
                                      :maxc  {:$max :$cups}}}
                            {:$sort {:_id 1}})]
     (let [data (into {} (map (fn [x] [(:_id x) x]) (:result r)))]
-      (map (fn [i] (let [d (data i {:minc 0 :maxc 0 :sumc 0 :sumc2 0
-                                   :minr 0 :maxr 0 :sumr 0 :sumr2 0 :n 1})
+      (map (fn [i] (let [d (data (inc i) {:minc 0 :maxc 0 :sumc 0 :sumc2 0
+                                         :minr 0 :maxr 0 :sumr 0 :sumr2 0 :n 1})
                         n (:n d)
                         meanc (/ (:sumc d) n)
                         meanr (/ (:sumr d) n)
                         days ["Sun" "Mon" "Tue" "Wed" "Thu" "Fri" "Sat"]]
-                    {:day (days (dec i))
+                    {:day (days i)
                      :cups {:min (:minc d)
                             :max (:maxc d)
                             :mean meanc
@@ -143,7 +143,7 @@
                               :mean meanr
                               :std (Math/sqrt (- (/ (:sumr2 d) n)
                                                  (* meanr meanr)))}}))
-           [2 3 4 5 6 7 1]))))
+           (range 7)))))
 
 (defn get-cups-drunk [since people]
   ;; Only returns people who have drunk 1 or more cups.
