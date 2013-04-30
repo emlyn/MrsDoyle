@@ -22,17 +22,17 @@
                            patterns))))
           s)))
 
-(def hello?      (respond-to "hi" "yo" "hello" "hey" "morning?" "afternoon"
-                             "evening?" "sup" "what'?s up" "wassup" "gutten"
+(def hello?      (respond-to "h+i+" "y+o+" "h+e+ll+o+" "h+e+y+" "morning?" "afternoon"
+                             "evening?" "s+u+p+" "what'?s +up" "was+up" "gutten"
                              "ciao" "hola" "bonjour" "salut"))
-(def yes?        (respond-to "yes" "yeah" "yeh" "ya" "yup" "yep" "booyah?"
-                             "ok" "okay" "alright" "please" "totally" "sure"
-                             "definitely" "absolutely" "affirmative" "yarr?"
-                             "yah" "go on" "certainly" "si" "ja" "oui"
-                             "(good|great|nice|fantastic) idea"))
-(def no?         (respond-to "no" "not" "nah" "nar" "never" "negative" "nein"
+(def yes?        (respond-to "y+e+s+" "y+e+a*h+" "y+a+h*" "y+up+" "y+ep+" "boo+yah?"
+                             "o+k+" "o+kay+" "alright" "please" "totally" "sure"
+                             "definitely" "absolutely" "affirmative" "yar+"
+                             "go +on" "certainly" "s+i+" "ja+" "oui"
+                             "(good|great|nice|fantastic|fabulous) +idea"))
+(def no?         (respond-to "n+o+" "nope" "not" "nah" "nar" "never" "negative" "nein"
                              "non" "changed" "don'?t"))
-(def tea?        (respond-to "cuppa" "tea" "brew" "cup" "drink" "beverage"
+(def tea?        (respond-to "cuppa" "t+e+a+" "brew" "cup" "drink" "beverage"
                              "refreshment"))
 (def add-person? (respond-to "[A-Z0-9._%+-]+@[A-Z0-9.-]+[.][A-Z]{2,4}"))
 (def tea-prefs?  (respond-to "earl gr[ae]y" "mint" "peppermint" "milk" "sugar"
