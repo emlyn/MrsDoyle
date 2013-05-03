@@ -7,18 +7,18 @@ google.setOnLoadCallback(drawCharts);
 function dateAt(date, h, m, s, ms) {
     var d = new Date(date);
     d.setHours(h);
-    d.setMinutes(m);
-    d.setSeconds(s);
-    d.setMilliseconds(ms);
+    d.setMinutes(m == undefined ? 0 : m);
+    d.setSeconds(s == undefined ? 0 : s);
+    d.setMilliseconds(ms == undefined ? 0 : ms);
     return d;
 }
 
 function startOfDay(date) {
-    return dateAt(date, 0, 0, 0, 0);
+    return dateAt(date, 0);
 }
 
 function endOfDay(date) {
-    return dateAt(date, 23, 59, 59, 999);
+    return dateAt(date, 23, 59, 59);
 }
 
 // Massage data to make annotatedTimeline plot into cityscape plot.

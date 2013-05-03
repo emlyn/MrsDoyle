@@ -25,9 +25,7 @@
                             :exception (ppstr e)
                             :state (ppstr state)
                             :stacktrace trace})
-    (error
-     (format "Error: %s\nState: %s\nStack: %s"
-             (ppstr e) (ppstr state) trace))))
+    (error e (ppstr state))))
 
 (def default-state {:initiator nil
                     :informed #{}

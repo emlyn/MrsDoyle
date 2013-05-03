@@ -32,25 +32,25 @@
                              "(good|great|nice|fantastic|fabulous) +idea"))
 (def no?         (respond-to "n+o+" "nope" "not" "nah" "nar" "never" "negative" "nein"
                              "non" "changed" "don'?t"))
-(def tea?        (respond-to "cuppa" "t+e+a+" "brew" "cup" "drink" "beverage"
+(def tea?        (respond-to "cuppa" "t+e+a+" "brew" "cup" "mug" "drink" "beverage"
                              "refreshment"))
 (def add-person? (respond-to "[A-Z0-9._%+-]+@[A-Z0-9.-]+[.][A-Z]{2,4}"))
-(def tea-prefs?  (respond-to "earl gr[ae]y" "mint" "peppermint" "milk" "sugar"
+(def tea-prefs?  (respond-to "earl +gr[ae]y" "mint" "peppermint" "milk" "sugar"
                              "lemon" "white" "black" "green" "roo?ibos" "chai"
                              "ceylon" "camomile" "lapsang" "souchong" "honey"
-                             "english breakfast" "herb(al)? tea"))
-(def go-away?    (respond-to "go away" "busy" "from home" "not today" "not in"
-                             "wfh" "shut up"))
-(def away?       (respond-to "wfh" "away" "out" "home" "not here" "holiday"
-                             "(not|don'?t) disturb"))
+                             "english breakfast" "herb(al)? +tea"))
+(def go-away?    (respond-to "go away" "busy" "from +home" "not +today" "not +in"
+                             "wfh" "shut +up"))
+(def away?       (respond-to "wfh" "away" "out" "home.*" "not +here" "holiday" "vacation"
+                             "(not|don'?t) +disturb"))
 (def help?       (respond-to "help"))
-(def gordon?     (respond-to "^what is \".*\"" "^who knows about \".*\""
-                             "^who (can|do) I talk to about \".*\""))
+(def gordon?     (respond-to "^what +is +\".*\"" "^who +knows +about +\".*\""
+                             "^who +(can|do) +I +talk +to +about +\".*\""))
 (def who?        (respond-to "who('s|'re)? .+[?]$"))
 (def most?       (respond-to "most" "more"))
 (def drunk?      (respond-to "dr[ua]nk" "drinks"))
 (def made?       (respond-to "made" "makes" "brewed"))
-(def available?  (respond-to "on ?line" "available"))
+(def available?  (respond-to "on *line" "available"))
 (def luckiest?   (respond-to "luckiest" "(best|highest) .*ratio"))
 (def unluckiest? (respond-to "unluckiest" "(worst|lowest) .*ratio"))
 (def what?       (respond-to "what('s|'re)? .+[?]$"))

@@ -4,12 +4,17 @@ h3 {
     font-weight: bold;
 }
 
-#all_time_drunk_div, #all_time_rounds_div, #all_time_initiated_div, #luckiest_so_far_div {
+#all_time_drunk_div,
+#all_time_rounds_div,
+#all_time_initiated_div,
+#luckiest_so_far_div {
     width: 1000px;
     height: 500px;
 }
 
-#round_sizes_div, #weekly_stats_div, #activity_timeline_div {
+#round_sizes_div,
+#weekly_stats_div,
+#activity_timeline_div {
     width: 1000px;
     height: 400px;
 }
