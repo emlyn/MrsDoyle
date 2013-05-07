@@ -5,7 +5,9 @@
    [compojure.core :refer :all]
    [compojure.route :as route]
    [ring.util.response :as resp]
-   [clojure.data.json :as json]))
+   [clojure.data.json :as json]
+   [clojure.string :as str]
+   [taoensso.timbre :refer [info]]))
 
 (defn json-response [data & [status]]
   {:status (or status 200)
@@ -41,7 +43,18 @@
 (defn weekly-stats []
   (json-response (stats/get-weekly-stats)))
 
-(defroutes app-routes
+(defn wrap-logger [handler]
+  (fn [{:keys [request-method uri]
+       :as req}]
+    (let [resp (handler req)]
+      (when (re-find #"[.]html$" uri)
+        (info (format "From %s: %s %s"
+                      (:remote-addr req)
+                      (-> request-method name str/upper-case)
+                      uri)))
+      resp)))
+
+(defroutes handler
   (GET "/" [] (resp/redirect "index.html"))
   (GET "/drinker-cups" [] (drinker-cups))
   (GET "/maker-rounds" [] (maker-rounds))
@@ -53,3 +66,7 @@
   (GET "/weekly-stats" [] (weekly-stats))
   (route/resources "/")
   (route/not-found "Not Found"))
+
+(def wrapped-handler
+  (-> app-routes
+      wrap-logger))

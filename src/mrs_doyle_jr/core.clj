@@ -480,7 +480,7 @@
     conn))
 
 (defn run-webserver [conf]
-  (run-jetty web/app-routes conf))
+  (run-jetty web/wrapped-handler conf))
 
 (defn connect! [& [fname]]
   (load-config! (or fname "config.clj"))
