@@ -68,5 +68,5 @@
   (route/not-found "Not Found"))
 
 (def wrapped-handler
-  (-> app-routes
+  (-> handler
       wrap-logger))
