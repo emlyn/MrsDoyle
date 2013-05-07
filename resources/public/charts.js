@@ -83,7 +83,7 @@ function drawCharts() {
                   document.getElementById('all_time_initiated_div')));
 
     drawChart('/drinker-daily-cups',
-              {title: 'How much do people drink per day?'},
+              {title: 'Who drink the most cups of tea per day?'},
               [{type: 'string', label: 'Name'},
                {type: 'number', label: 'Mean'},
                {type: 'number', label: 'Max'}],
@@ -130,9 +130,9 @@ function drawCharts() {
     drawChart('/weekly-stats',
               {title: 'How does the activity vary depending on day of week?',
                series: [{color: 'red'},
-                        {color: 'red', visibleInLegend: false},
+                        {color: 'orange'},
                         {color: 'blue'},
-                        {color: 'blue', visibleInLegend: false}]},
+                        {color: 'green'}]},
               [{type: 'string', label: 'Day'},
                {type: 'number', label: 'Cups'},
                {type: 'number', role: 'interval'},
@@ -142,7 +142,7 @@ function drawCharts() {
                {type: 'number', label: 'Rounds'},
                {type: 'number', role: 'interval'},
                {type: 'number', role: 'interval'},
-               {type: 'number', label: 'Max Cups'},
+               {type: 'number', label: 'Max Rounds'},
                {type: 'boolean', role: 'certainty'}], // for dashed lines
               function(json) {
                   return json.map(function(d){
