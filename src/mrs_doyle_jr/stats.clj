@@ -83,6 +83,20 @@
     (map (fn [d] [(:_id d) (:ratio d)])
          (:result r))))
 
+(defn get-drinker-cups-per-day []
+  (let [r (mongo/aggregate :cups
+                           {:$group {:_id {:drinker :$drinker
+                                           :y {:$year :$date}
+                                           :d {:$dayOfYear :$date}}
+                                     :cups {:$sum 1}}}
+                           {:$group {:_id :$_id.drinker
+                                     :mean {:$avg :$cups}
+                                     :max  {:$max :$cups}}}
+                           {:$sort (array-map :mean -1
+                                              :max  -1)})]
+    (map (fn [d] (map #(% d) [:_id :mean :max]))
+         (:result r))))
+
 (defn get-recent-drinkers []
   (let [r (mongo/aggregate :rounds
                            {:$group {:_id {:y {:$year :$date}

@@ -28,6 +28,10 @@
   (json-response (map (fn [[dr lk]] [(get-salutation dr) lk])
                       (stats/get-drinker-luck))))
 
+(defn drinker-daily-cups []
+  (json-response (map (fn [[dr mean max]] [(get-salutation dr) mean max])
+                      (stats/get-drinker-cups-per-day))))
+
 (defn recent-drinkers []
   (json-response (stats/get-recent-drinkers)))
 
@@ -43,6 +47,7 @@
   (GET "/maker-rounds" [] (maker-rounds))
   (GET "/initiator-rounds" [] (initiator-rounds))
   (GET "/drinker-luck" [] (drinker-luck))
+  (GET "/drinker-daily-cups" [] (drinker-daily-cups))
   (GET "/recent-drinkers" [] (recent-drinkers))
   (GET "/round-sizes" [] (round-sizes))
   (GET "/weekly-stats" [] (weekly-stats))

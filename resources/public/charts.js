@@ -82,6 +82,15 @@ function drawCharts() {
               new google.visualization.PieChart(
                   document.getElementById('all_time_initiated_div')));
 
+    drawChart('/drinker-daily-cups',
+              {title: 'How much do people drink per day?'},
+              [{type: 'string', label: 'Name'},
+               {type: 'number', label: 'Mean'},
+               {type: 'number', label: 'Max'}],
+              null,
+              new google.visualization.ColumnChart(
+                  document.getElementById('daily_cups_div')));
+
     drawChart('/drinker-luck',
               {title: 'Who has been luckiest so far (and so is more likely to get picked next)?',
                interpolateNulls: true,
