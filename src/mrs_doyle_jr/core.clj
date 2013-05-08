@@ -13,7 +13,7 @@
    [clojure.pprint :refer [pprint]]
    [somnium.congomongo :as mongo]
    [ring.adapter.jetty :refer [run-jetty]]
-   [taoensso.timbre :as timbre :refer [info error]]
+   [taoensso.timbre :as timbre :refer [debug info error]]
    [taoensso.timbre.appenders.irc :refer [irc-appender]]))
 
 (defn ppstr [o]
@@ -444,11 +444,11 @@
   (let [addr (:jid presence)
         person (get-person! addr)
         status (or (:status presence) "")]
-    (info (format "Presence %s %s (%s): '%s'"
-                  (if (:online? presence) " online" "offline")
-                  (if (:away? presence) "away" "here")
-                  addr
-                  status))
+    (debug (format "Presence %s %s (%s): '%s'"
+                   (if (:online? presence) " online" "offline")
+                   (if (:away? presence) "away" "here")
+                   addr
+                   status))
     (send state presence-status status person)
     (when (and (:online? presence)
                (not (:away? presence)))
