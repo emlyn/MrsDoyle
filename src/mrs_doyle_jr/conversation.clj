@@ -256,15 +256,15 @@
               "%s have already had tea today, maybe they have a mug you can re-use."))
 
 (def remember-your-cup
-  (one-of "Don't forget your cup!"
-          "Remember that you already have a cup."
-          "And don't forget your cup from earlier, I don't want you making too much washing-up for me."))
+  (one-of "Don't forget your mug!"
+          "Remember that you already have a mug."
+          "And don't forget your mug from earlier, I don't want you making too much washing-up for me."))
 
 (def first-cup-of-the-day
-  (one-of "Nobody has a cup yet, that I know of."
-          "I don't think anybody has a cup yet."
-          "No one has a cup, unless they've been drinking behind my back."
-          "I think this is everybody's first cup of the day."))
+  (one-of "Nobody has a mug yet, that I know of."
+          "I don't think anybody has a mug yet."
+          "No one has a mug, unless they've been drinking behind my back."
+          "I think this is everybody's first mug of the day."))
 
 (def gordon
   (one-of "I don't know about that, why don't you ask Gordon?"
