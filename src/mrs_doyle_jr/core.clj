@@ -65,7 +65,7 @@
     (str
      (conv/well-volunteered)
      "\n"
-     (apply str (map #(format " * %s: %s\n" (get-salutation %1) %2)
+     (apply str (map (fn [[k v]] (format " * %s: %s\n" (get-salutation k) v))
                      (sort others-prefs)))
      (if (empty? had-today)
        (conv/first-cup-of-the-day)
