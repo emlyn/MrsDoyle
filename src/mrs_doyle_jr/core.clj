@@ -60,18 +60,22 @@
          (mongo/fetch-by-id :people addr))))
 
 (defn build-well-volunteered-message [maker prefs]
-  (let [others (filter (partial not= maker) (keys prefs))
-        had-today (map get-salutation
-                       (keys (stats/get-cups-drunk (this-morning) others)))]
+  (let [others-prefs (into {} (filter (comp (partial not= maker) first) prefs))
+        had-today (stats/get-cups-drunk (this-morning) (keys prefs))]
     (str
      (conv/well-volunteered)
-     (apply str (map #(format "\n * %s: %s" (get-salutation %) (prefs %))
-                     others))
-     (when-not (empty? had-today)
-       (str "\n"
-            (if (= 1 (count had-today))
-              (conv/had-today-singular-arg (first had-today))
-              (conv/had-today-plural-arg (join-with-and had-today))))))))
+     "\n"
+     (apply str (map #(format " * %s: %s\n" (get-salutation %1) %2)
+                     (sort others-prefs)))
+     (if (empty? had-today)
+       (conv/first-cup-of-the-day)
+       (let [others-had (map get-salutation (filter (partial not= maker) (keys had-today)))
+             all-had (if-not (had-today maker) others-had (conj others-had "you"))]
+         (if (empty? others-had)
+           (conv/remember-your-cup)
+           (if (= 1 (count all-had))
+             (conv/had-today-singular-arg (join-with-and all-had))
+             (conv/had-today-plural-arg (join-with-and all-had)))))))))
 
 (defn build-available-reply [addr]
   (let [connected (jabber/available @connection)
