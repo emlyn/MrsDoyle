@@ -480,7 +480,7 @@
     conn))
 
 (defn run-webserver [conf]
-  (run-jetty web/wrapped-handler conf))
+  (run-jetty web/wrapped-handler (merge {:join? false} conf)))
 
 (defn connect! [& [fname]]
   (load-config! (or fname "config.clj"))
