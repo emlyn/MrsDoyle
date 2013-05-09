@@ -494,7 +494,7 @@
 
 (defn connect! [& [fname]]
   (load-config! (or fname "config.clj"))
-  (enable-irc-logger)
+  (configure-logger)
   (make-at-pool!)
   (connect-mongo! (:mongo @config))
   (send state #(assoc % :double-jeopardy
