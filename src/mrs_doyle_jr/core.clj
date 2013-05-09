@@ -466,12 +466,13 @@
 (defn load-config! [fname]
   (swap! config (constantly (read-string (slurp fname)))))
 
-(defn enable-irc-logger []
+(defn configure-logger []
   (timbre/set-config! [:timestamp-pattern] "yyyy-MM-dd HH:mm:ss")
-  (timbre/set-config! [:shared-appender-config :socket] {:port 9000})
-  (timbre/set-config! [:appenders :socket-appender] socket-appender)
-  (when-let [irc (:irc @config)]
-    (timbre/set-config! [:shared-appender-config :irc] irc)
+  (when-let [sock-conf (:socket-logger @config)]
+    (timbre/set-config! [:shared-appender-config :socket] sock-conf)
+    (timbre/set-config! [:appenders :socket-appender] socket-appender))
+  (when-let [irc-conf (:irc-logger @config)]
+    (timbre/set-config! [:shared-appender-config :irc] irc-conf)
     (timbre/set-config! [:appenders :irc-appender] irc-appender)
     (timbre/set-config! [:appenders :standard-out :min-level] :warn)))
 
