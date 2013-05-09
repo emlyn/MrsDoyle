@@ -69,7 +69,9 @@
                      (sort others-prefs)))
      (if (empty? had-today)
        (conv/first-cup-of-the-day)
-       (let [others-had (map get-salutation (filter (partial not= maker) (keys had-today)))
+       (let [others-had (vec (sort (map get-salutation
+                                        (filter (partial not= maker)
+                                                (keys had-today)))))
              all-had (if-not (had-today maker) others-had (conj others-had "you"))]
          (if (empty? others-had)
            (conv/remember-your-cup)
