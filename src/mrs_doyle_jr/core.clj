@@ -14,7 +14,8 @@
    [somnium.congomongo :as mongo]
    [ring.adapter.jetty :refer [run-jetty]]
    [taoensso.timbre :as timbre :refer [debug info error]]
-   [taoensso.timbre.appenders.irc :refer [irc-appender]]))
+   [taoensso.timbre.appenders.irc :refer [irc-appender]]
+   [taoensso.timbre.appenders.socket :refer [socket-appender]]))
 
 (defn ppstr [o]
   (with-out-str (pprint o)))
@@ -467,6 +468,8 @@
 
 (defn enable-irc-logger []
   (timbre/set-config! [:timestamp-pattern] "yyyy-MM-dd HH:mm:ss")
+  (timbre/set-config! [:shared-appender-config :socket] {:port 9000})
+  (timbre/set-config! [:appenders :socket-appender] socket-appender)
   (when-let [irc (:irc @config)]
     (timbre/set-config! [:shared-appender-config :irc] irc)
     (timbre/set-config! [:appenders :irc-appender] irc-appender)
