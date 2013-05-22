@@ -473,7 +473,8 @@
     (timbre/set-config! [:appenders :socket-appender] socket-appender))
   (when-let [irc-conf (:irc-logger @config)]
     (timbre/set-config! [:shared-appender-config :irc] irc-conf)
-    (timbre/set-config! [:appenders :irc-appender] irc-appender)
+    (timbre/set-config! [:appenders :irc-appender] (assoc irc-appender
+                                                     :async? true))
     (timbre/set-config! [:appenders :standard-out :min-level] :warn)))
 
 (defn make-at-pool! []
