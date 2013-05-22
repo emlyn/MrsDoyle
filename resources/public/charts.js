@@ -129,20 +129,13 @@ function drawCharts() {
 
     drawChart('/weekly-stats',
               {title: 'How does the activity vary depending on day of week?',
-               series: [{color: 'red'},
-                        {color: 'orange'},
-                        {color: 'blue'},
-                        {color: 'green'}]},
+               series: [{color: 'blue'},
+                        {color: 'red'}]},
               [{type: 'string', label: 'Day'},
-               {type: 'number', label: 'Cups'},
+               {type: 'number', label: 'Mean +/- Std. Dev.'},
                {type: 'number', role: 'interval'},
                {type: 'number', role: 'interval'},
-               {type: 'number', label: 'Max Cups'},
-               {type: 'boolean', role: 'certainty'}, // for dashed lines
-               {type: 'number', label: 'Rounds'},
-               {type: 'number', role: 'interval'},
-               {type: 'number', role: 'interval'},
-               {type: 'number', label: 'Max Rounds'},
+               {type: 'number', label: 'Max'},
                {type: 'boolean', role: 'certainty'}], // for dashed lines
               function(json) {
                   return json.map(function(d){
@@ -153,11 +146,6 @@ function drawCharts() {
                               c.mean - c.std,
                               c.mean + c.std,
                               c.max,
-                              false,
-                              r.mean,
-                              r.mean - r.std,
-                              r.mean + r.std,
-                              r.max,
                               false];
                   });
               },
