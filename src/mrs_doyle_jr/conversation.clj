@@ -38,7 +38,8 @@
 (def tea-prefs?  (respond-to "earl +gr[ae]y" "mint" "peppermint" "milk" "sugar"
                              "lemon" "white" "black" "green" "roo?ibos" "chai"
                              "ceylon" "camomile" "lapsang" "souchong" "honey"
-                             "english breakfast" "herb(al)? +tea"))
+                             "english breakfast" "herb(al)? +tea" "hot +water"
+                             "tea +bags?" "tea +with"))
 (def go-away?    (respond-to "go away" "busy" "from +home" "not +today" "not +in"
                              "wfh" "shut +up"))
 (def away?       (respond-to "wfh" "away" "out" "home.*" "not +here" "holiday" "vacation"
