@@ -23,7 +23,7 @@
                       (stats/get-maker-rounds))))
 
 (defn initiator-rounds []
-  (json-response (map (fn [[dr cs]] [dr #_(get-salutation dr) cs])
+  (json-response (map (fn [[dr cs]] [(get-salutation dr) cs])
                       (stats/get-initiator-rounds))))
 
 (defn drinker-luck []
