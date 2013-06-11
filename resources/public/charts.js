@@ -66,14 +66,6 @@ function drawCharts() {
               new google.visualization.PieChart(
                   document.getElementById('all_time_drunk_div')));
 
-    drawChart('/maker-rounds',
-              {title: 'Who has made tea most times via Mrs Doyle (all time)?'},
-              [{type: 'string', label: 'Maker'},
-               {type: 'number', label: 'Rounds made'}],
-              null,
-              new google.visualization.PieChart(
-                  document.getElementById('all_time_rounds_div')));
-
     drawChart('/initiator-rounds',
               {title: 'Who has initiated the most tea rounds via Mrs Doyle (all time)?'},
               [{type: 'string', label: 'Initiator'},
