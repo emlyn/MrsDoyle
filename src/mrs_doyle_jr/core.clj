@@ -83,7 +83,8 @@
 (defn build-available-reply [addr]
   (let [connected (jabber/available @connection)
         available (mongo/fetch :people
-                               :where {:askme true}
+                               :where {:_id {:$in connected}
+                                       :askme true}
                                :only [:_id])
         people (filter (partial not= addr)
                        (map :_id available))]
