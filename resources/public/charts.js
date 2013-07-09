@@ -56,13 +56,24 @@ function drawChart(url, options, columns, func, chart) {
     });
 }
 
+function top10(json) {
+    var others = json.slice(10).reduce(function(a, b) {
+        var result = ['Others'];
+        for (var i in a) {
+            if (i > 0) result.push(a[i] + b[i]);
+        }
+        return result;
+    });
+    return json.slice(0,10).concat([others]);
+}
+
 // Callback that creates and populates our charts
 function drawCharts() {
     drawChart('/drinker-cups',
               {title: 'Who has drunk the most tea via Mrs Doyle (all time)?'},
               [{type: 'string', label: 'Drinker'},
                {type: 'number', label: 'Cups drunk'}],
-              null,
+              top10,
               new google.visualization.PieChart(
                   document.getElementById('all_time_drunk_div')));
 
@@ -70,7 +81,7 @@ function drawCharts() {
               {title: 'Who has initiated the most tea rounds via Mrs Doyle (all time)?'},
               [{type: 'string', label: 'Initiator'},
                {type: 'number', label: 'Rounds initiated'}],
-              null,
+              top10,
               new google.visualization.PieChart(
                   document.getElementById('all_time_initiated_div')));
 
