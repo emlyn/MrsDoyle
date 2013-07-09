@@ -57,8 +57,9 @@ function drawChart(url, options, columns, func, chart) {
 }
 
 function top10(json) {
-    if (json.length < 10) return json;
-    var others = json.slice(10).reduce(function(a, b) {
+    var tail = json.slice(10);
+    if (tail.length <= 1) return json;
+    var others = tail.reduce(function(a, b) {
         var result = ['Others'];
         for (var i in a) {
             if (i > 0) result.push(a[i] + b[i]);
