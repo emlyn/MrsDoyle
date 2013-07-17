@@ -33,7 +33,7 @@
 (def no?         (respond-to "n+o+" "nope" "not" "nah" "nar" "never" "negative" "nein"
                              "non" "changed" "don'?t"))
 (def tea?        (respond-to "cuppa" "t+e+a+" "brew" "cup" "mug" "drink" "beverage"
-                             "refreshment"))
+                             "refreshment" "t"))
 (def add-person? (respond-to "[A-Z0-9._%+-]+@[A-Z0-9.-]+[.][A-Z]{2,4}"))
 (def tea-prefs?  (respond-to "earl +gr[ae]y" "mint" "peppermint" "milk" "sugar"
                              "lemon" "white" "black" "green" "roo?ibos" "chai"
