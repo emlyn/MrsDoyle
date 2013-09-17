@@ -22,40 +22,40 @@
                            patterns))))
           s)))
 
-(def hello?      (respond-to "h+i+" "y+o+" "h+e+ll+o+" "h+e+y+" "morning?" "afternoon"
-                             "evening?" "s+u+p+" "what'?s +up" "was+up" "gutten"
-                             "ciao" "hola" "bonjour" "salut"))
-(def yes?        (respond-to "y+e+s+" "y+e+a*h+" "y+a+h*" "y+up+" "y+ep+" "boo+yah?"
+(def hello?      (respond-to "h+i+" "y+o+" "h+e+l+o+" "h+e+y+" "morning?" "afternoon"
+                             "evening?" "s+u+p+" "what'?s\\s+up" "was+up" "gutten"
+                             "buena?" "ciao" "hola" "bonjour" "salut"))
+(def yes?        (respond-to "y+e+s+" "y+e+a*h+" "y+a+h*" "y+up+" "y+ep+" "boo+ya+h*"
                              "o+k+" "o+kay+" "alright" "please" "totally" "sure"
-                             "definitely" "absolutely" "affirmative" "yar+"
-                             "go +on" "certainly" "s+i+" "ja+" "oui"
-                             "(good|great|nice|fantastic|fabulous) +idea"))
-(def no?         (respond-to "n+o+" "nope" "not" "nah" "nar" "never" "negative" "nein"
-                             "non" "changed" "don'?t"))
-(def tea?        (respond-to "cuppa" "t+e+a+" "brew" "cup" "mug" "drink" "beverage"
+                             "definitely" "absolutely" "affirmative" "y+ar*"
+                             "go\\s+on" "certainly" "s+i+" "ja+" "oui" "why\\s+not"
+                             "(good|great|nice|fantastic|fabulous|amazing|brilliant)\\s+idea"))
+(def no?         (respond-to "n+o+" "nope" "not" "nah+" "nar+" "never" "negative" "nein"
+                             "nicht" "non" "changed" "don'?t"))
+(def tea?        (respond-to "cupp+a" "t+e+a+" "brew" "cup" "mug" "drink" "beverage"
                              "refreshment" "t"))
 (def add-person? (respond-to "[A-Z0-9._%+-]+@[A-Z0-9.-]+[.][A-Z]{2,4}"))
-(def tea-prefs?  (respond-to "earl +gr[ae]y" "mint" "peppermint" "milk" "sugar"
-                             "lemon" "white" "black" "green" "roo?ibos" "chai"
+(def tea-prefs?  (respond-to "earl\\s+gr[ae]y" "(pepper)?mint" "milk" "sugar"
+                             "lemon" "white" "black" "green" "roo?ibosh?" "chai"
                              "ceylon" "camomile" "lapsang" "souchong" "honey"
-                             "english breakfast" "herb(al)? +tea" "hot +water"
-                             "tea +bags?" "tea +with"))
-(def go-away?    (respond-to "go away" "busy" "from +home" "not +today" "not +in"
-                             "wfh" "shut +up"))
-(def away?       (respond-to "wfh" "away" "out" "home.*" "not +here" "holiday" "vacation"
-                             "(not|don'?t) +disturb"))
+                             "english\\s+breakfast" "herb(al)?\\s+tea" "hot\\s+water"
+                             "tea\\s+bags?" "tea\\s+with"))
+(def go-away?    (respond-to "go\\s+away" "busy" "from\\s+home" "not\\s+today" "not\\s+in"
+                             "wfh" "shut\\s+up"))
+(def away?       (respond-to "wfh" "away" "out" "home.*" "not\\s+here" "holiday" "vacation"
+                             "(not|don'?t)\\s+disturb"))
 (def help?       (respond-to "help"))
-(def gordon?     (respond-to "^what +is +\".*\"" "^who +knows +about +\".*\""
-                             "^who +(can|do) +I +talk +to +about +\".*\""))
-(def who?        (respond-to "who('s|'re)? .+[?]$"))
+(def gordon?     (respond-to "^what\\s+is\\s+\".*\"" "^who\\s+knows\\s+about\\s+\".*\""
+                             "^who\\s+(can|do)\\s+I\\s+talk\\s+to\\s+about\\s+\".*\""))
+(def who?        (respond-to "who('s|'re)?\\s.+[?]$"))
 (def most?       (respond-to "most" "more"))
 (def drunk?      (respond-to "dr[ua]nk" "drinks"))
 (def made?       (respond-to "made" "makes" "brewed"))
-(def available?  (respond-to "on *line" "available"))
-(def luckiest?   (respond-to "luckiest" "(best|highest) .*ratio"))
-(def unluckiest? (respond-to "unluckiest" "(worst|lowest) .*ratio"))
-(def what?       (respond-to "what('s|'re)? .+[?]$"))
-(def stats?      (respond-to "stats?" "statistics?" "info(rmation)?" "data"))
+(def available?  (respond-to "on\\s*line" "available"))
+(def luckiest?   (respond-to "luckiest" "(best|highest)\\s.*ratio"))
+(def unluckiest? (respond-to "unluckiest" "(worst|lowest)\\s.*ratio"))
+(def what?       (respond-to "what('s|'re)?\\s.+[?]$"))
+(def stats?      (respond-to "stats?" "statistics?" "info(rmation)?" "data" "numbers"))
 (def rude?       (apply respond-to (split (decode-str (str
                              "ZnVja3xzaGl0fGJvbGxvY2tzfGJpdGNofGJhc3RhcmR8cGVuaXN8"
                              "Y29ja3xoZWxsfHBpc3N8cmV0YXJkfGN1bnR8Y29mZmVlfHN3eXBl"))
