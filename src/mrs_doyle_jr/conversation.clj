@@ -24,20 +24,20 @@
 
 (def hello?      (respond-to "h+i+" "y+o+" "h+e+l+o+" "h+e+y+" "morning?" "afternoon"
                              "evening?" "s+u+p+" "what'?s\\s+up" "was+up" "gutten"
-                             "buena?" "ciao" "hola" "bonjour" "salut"))
+                             "buenos" "ciao" "hola" "bonjour" "salut"))
 (def yes?        (respond-to "y+e+s+" "y+e+a*h+" "y+a+h*" "y+up+" "y+ep+" "boo+ya+h*"
-                             "o+k+" "o+kay+" "alright" "please" "totally" "sure"
+                             "o+k+" "o+k+a+y+" "alright" "please" "totally" "sure"
                              "definitely" "absolutely" "affirmative" "y+ar*"
                              "go\\s+on" "certainly" "s+i+" "ja+" "oui" "why\\s+not"
                              "(good|great|nice|fantastic|fabulous|amazing|brilliant)\\s+idea"))
 (def no?         (respond-to "n+o+" "nope" "not" "nah+" "nar+" "never" "negative" "nein"
                              "nicht" "non" "changed" "don'?t"))
-(def tea?        (respond-to "cupp+a" "t+e+a+" "brew" "cup" "mug" "drink" "beverage"
+(def tea?        (respond-to "cupp+a+" "t+e+a+" "brew" "c+u+p+" "mug" "drink" "beverage"
                              "refreshment" "t"))
 (def add-person? (respond-to "[A-Z0-9._%+-]+@[A-Z0-9.-]+[.][A-Z]{2,4}"))
-(def tea-prefs?  (respond-to "earl\\s+gr[ae]y" "(pepper)?mint" "milk" "sugar"
+(def tea-prefs?  (respond-to "earl\\s*gr[ae]y" "(pepper)?mint" "milk" "sugar"
                              "lemon" "white" "black" "green" "roo?ibosh?" "chai"
-                             "ceylon" "camomile" "lapsang" "souchong" "honey"
+                             "ceylon" "camomile" "lapsang" "souchong" "honey" "assam"
                              "english\\s+breakfast" "herb(al)?\\s+tea" "hot\\s+water"
                              "tea\\s+bags?" "tea\\s+with"))
 (def go-away?    (respond-to "go\\s+away" "busy" "from\\s+home" "not\\s+today" "not\\s+in"
