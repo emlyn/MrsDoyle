@@ -121,15 +121,22 @@ function drawCharts() {
     drawChart('/round-sizes',
               {title: 'How many cups of tea have people had to make per round?',
                hAxis: {viewWindow: {min: 1.5},
-                       gridlines: {count: 0},
-                       ticks: [2,3,4,5,6]},
+                       gridlines: {}},
                vAxis: {logScale: true,
-                       minValue: 0.1}},
+                       baseline: 0.1,
+                       minValue: 0.1,
+                       ticks: [{v: 0.1, f: "0"},
+                               {v: 1, f: "1"},
+                               {v: 10, f: "10"},
+                               {v: 100, f: "100"},
+                               {v: 1000, f: "1000"}]}},
               [{type: 'number', label: 'Round size'},
                {type: 'number', label: 'Frequency'}],
               function(json, options) {
-                  options.hAxis.viewWindow.max = json[json.length-1][0] + 0.5;
-                  options.hAxis.gridlines.count = json.length;
+                  var max = json[json.length-1][0];
+                  var min = json[0][0];
+                  options.hAxis.viewWindow.max = max + 0.5;
+                  options.hAxis.gridlines.count = max - min + 1;
                   return json;
               },
               new google.visualization.ColumnChart(
