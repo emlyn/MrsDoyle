@@ -121,7 +121,8 @@ function drawCharts() {
     drawChart('/round-sizes',
               {title: 'How many cups of tea have people had to make per round?',
                hAxis: {viewWindow: {min: 1.5},
-                       gridlines: {}}},
+                       gridlines: {count: -1}},
+               vAxis: {logScale: true}},
               [{type: 'number', label: 'Round size'},
                {type: 'number', label: 'Frequency'}],
               function(json, options) {
