@@ -88,12 +88,15 @@ function drawCharts() {
                   document.getElementById('all_time_initiated_div')));
 
     drawChart('/drinker-daily-cups',
-              {title: 'Who drink the most cups of tea per day?'},
+              {title: 'Who drink the most cups of tea per day?',
+               vAxis: {gridlines: {}}},
               [{type: 'string', label: 'Name'},
                {type: 'number', label: 'Mean'},
                {type: 'number', label: 'Max'}],
-              function(json) {
-                  return json.slice(0, 20);
+              function(json, options) {
+                  var n = Math.max.apply(null, json.map(function(x) {return x[2];}));
+                  options.vAxis.gridlines.count = n + 1;
+                  return json.slice(0,20);
               },
               new google.visualization.ColumnChart(
                   document.getElementById('daily_cups_div')));
