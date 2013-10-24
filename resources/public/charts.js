@@ -92,7 +92,9 @@ function drawCharts() {
               [{type: 'string', label: 'Name'},
                {type: 'number', label: 'Mean'},
                {type: 'number', label: 'Max'}],
-              null,
+              function(json) {
+                  return json.slice(0, 20);
+              },
               new google.visualization.ColumnChart(
                   document.getElementById('daily_cups_div')));
 
