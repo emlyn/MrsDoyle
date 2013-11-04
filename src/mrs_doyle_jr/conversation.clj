@@ -25,7 +25,7 @@
 (def hello?      (respond-to "h+i+" "y+o+" "h+e+l+o+" "h+e+y+" "morning?" "afternoon"
                              "evening?" "s+u+p+" "what'?s\\s+up" "was+up" "gutten"
                              "buenos" "ciao" "hola" "bonjour" "salut"))
-(def yes?        (respond-to "y+e+s+" "y+e+a*h+" "y+a+h*" "y+up+" "y+ep+" "boo+ya+h*"
+(def yes?        (respond-to "y+e+s*" "y+e+a*h+" "y+a+h*" "y+up+" "y+ep+" "boo+ya+h*"
                              "o+k+" "o+k+a+y+" "alright" "please" "totally" "sure"
                              "definitely" "absolutely" "affirmative" "y+ar*"
                              "go\\s+on" "certainly" "s+i+" "ja+" "oui" "why\\s+not"
